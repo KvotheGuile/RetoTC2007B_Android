@@ -17,9 +17,11 @@ import androidx.compose.ui.Modifier
 import mx.fer.app.ui.theme.FERMovilTheme
 import mx.fer.app.views.AnnouncementsScreen
 import mx.fer.app.views.HomeScreen
+import mx.fer.app.views.NotificationScreen
 import mx.fer.app.views.components.AppHeader
 import mx.fer.app.views.components.BottomNavBar
 import mx.fer.app.views.components.Destination
+import androidx.activity.compose.BackHandler
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,32 +30,54 @@ class MainActivity : ComponentActivity() {
         setContent {
             FERMovilTheme {
                 var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
+                var showNotifications by rememberSaveable { mutableStateOf(false) }
+
+                // System back button closes notifications instead of exiting the app
+                BackHandler(enabled = showNotifications) {
+                    showNotifications = false
+                }
 
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
-                    topBar = { AppHeader(title = destination.label) },
+                    topBar = {
+                        AppHeader(
+                            title = if (showNotifications) "Notificaciones" else destination.label,
+                            onNotificationsClick = { showNotifications = true }
+                        )
+                    },
                     bottomBar = {
                         BottomNavBar(
                             selected = destination,
-                            onSelect = { destination = it }
+                            onSelect = {
+                                destination = it
+                                showNotifications = false // leaving notifications when a tab is tapped
+                            }
                         )
                     },
                     containerColor = MaterialTheme.colorScheme.background
                 ) { innerPadding ->
                     val contentModifier = Modifier.padding(innerPadding)
 
-                    when (destination) {
-                        Destination.HOME -> HomeScreen(modifier = contentModifier)
-                        Destination.ANNOUNCEMENTS -> AnnouncementsScreen(modifier = contentModifier)
-                        Destination.PREFERENCES -> Box(
-                            modifier = contentModifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            // Temporal: aquí irá la pantalla de Preferencias.
-                            Text(
-                                text = destination.label,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                    if (showNotifications) {
+                        NotificationScreen(
+                            modifier = contentModifier,
+                            onClickNotif = { postId ->
+                                // TODO: open the post detail
+                            }
+                        )
+                    } else {
+                        when (destination) {
+                            Destination.HOME -> HomeScreen(modifier = contentModifier)
+                            Destination.ANNOUNCEMENTS -> AnnouncementsScreen(modifier = contentModifier)
+                            Destination.PREFERENCES -> Box(
+                                modifier = contentModifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = destination.label,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
                         }
                     }
                 }
