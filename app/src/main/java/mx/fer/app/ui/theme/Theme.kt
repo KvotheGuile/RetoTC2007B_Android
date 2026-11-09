@@ -5,14 +5,14 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 
 private val FerColorScheme = lightColorScheme(
-    primary = AzulPrincipal,
-    onPrimary = Blanco,
-    background = FondoGeneral,
-    onBackground = AzulOscuro,
-    surface = Blanco,
-    onSurface = AzulOscuro,
-    onSurfaceVariant = GrisDescripcion,
-    outlineVariant = GrisDescripcion.copy(alpha = 0.15f)
+    primary = PrimaryBlue,
+    onPrimary = White,
+    background = BackgroundGray,
+    onBackground = DarkBlue,
+    surface = White,
+    onSurface = DarkBlue,
+    onSurfaceVariant = DescriptionGray,
+    outlineVariant = DescriptionGray.copy(alpha = 0.15f)
 )
 
 @Composable

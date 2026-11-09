@@ -13,25 +13,25 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun FerTabs(
-    opciones: List<String>,
-    seleccionada: Int,
-    onSeleccionar: (Int) -> Unit
+    options: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit
 ) {
     Column(Modifier.background(MaterialTheme.colorScheme.surface)) {
         Row(Modifier.fillMaxWidth()) {
-            opciones.forEachIndexed { index, etiqueta ->
-                val activa = index == seleccionada
+            options.forEachIndexed { index, label ->
+                val isActive = index == selectedIndex
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onSeleccionar(index) },
+                        .clickable { onSelect(index) },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = etiqueta,
+                        text = label,
                         modifier = Modifier.padding(vertical = 12.dp),
                         style = MaterialTheme.typography.labelLarge,
-                        color = if (activa) MaterialTheme.colorScheme.primary
+                        color = if (isActive) MaterialTheme.colorScheme.primary
                         else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Box(
@@ -39,7 +39,7 @@ fun FerTabs(
                             .fillMaxWidth(0.5f)
                             .height(2.dp)
                             .background(
-                                if (activa) MaterialTheme.colorScheme.primary
+                                if (isActive) MaterialTheme.colorScheme.primary
                                 else MaterialTheme.colorScheme.surface
                             )
                     )

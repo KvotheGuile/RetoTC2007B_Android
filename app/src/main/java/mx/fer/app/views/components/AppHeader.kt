@@ -16,15 +16,15 @@ import androidx.compose.ui.unit.dp
 import mx.fer.app.R
 import mx.fer.app.ui.theme.Dimens
 
-private val AlturaHeader = 72.dp
-private val LogoHeader = 42.dp
-private val BotonCampana = 38.dp
-private val IconoCampana = 20.dp
+private val HeaderHeight = 72.dp
+private val LogoSize = 42.dp
+private val BellButtonSize = 38.dp
+private val BellIconSize = 20.dp
 
 @Composable
 fun AppHeader(
-    titulo: String,
-    onNotificacionesClick: () -> Unit = {}
+    title: String,
+    onNotificationsClick: () -> Unit = {}
 ) {
     Box(
         modifier = Modifier
@@ -35,8 +35,8 @@ fun AppHeader(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(AlturaHeader)
-                .padding(horizontal = Dimens.PaddingPantalla),
+                .height(HeaderHeight)
+                .padding(horizontal = Dimens.ScreenPadding),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
@@ -44,11 +44,11 @@ fun AppHeader(
                 Image(
                     painter = painterResource(R.drawable.logo_fer),
                     contentDescription = "Logo de la Fundación",
-                    modifier = Modifier.size(LogoHeader)
+                    modifier = Modifier.size(LogoSize)
                 )
-                Spacer(Modifier.width(Dimens.EspacioM))
+                Spacer(Modifier.width(Dimens.SpacingM))
                 Text(
-                    text = titulo,
+                    text = title,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground
                 )
@@ -56,16 +56,16 @@ fun AppHeader(
 
             Box(
                 modifier = Modifier
-                    .size(BotonCampana)
+                    .size(BellButtonSize)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.background)
-                    .clickable { onNotificacionesClick() },
+                    .clickable { onNotificationsClick() },
                 contentAlignment = Alignment.Center
             ) {
                 Image(
-                    painter = painterResource(R.drawable.ic_notificaciones),
+                    painter = painterResource(R.drawable.ic_notifications),
                     contentDescription = "Notificaciones",
-                    modifier = Modifier.size(IconoCampana)
+                    modifier = Modifier.size(BellIconSize)
                 )
             }
         }
