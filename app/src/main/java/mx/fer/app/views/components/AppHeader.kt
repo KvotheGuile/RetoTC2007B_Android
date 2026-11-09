@@ -16,8 +16,8 @@ import androidx.compose.ui.unit.dp
 import mx.fer.app.R
 import mx.fer.app.ui.theme.Dimens
 
-private val HeaderHeight = 72.dp
-private val LogoSize = 42.dp
+private val HeaderHeight = 80.dp
+private val LogoSize = 56.dp
 private val BellButtonSize = 38.dp
 private val BellIconSize = 20.dp
 

@@ -8,7 +8,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
 
-    val BASE_API_URL = "https://"
+    val BASE_API_URL = "https://example.com/"
     val DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
 
     private val gson = GsonBuilder()
