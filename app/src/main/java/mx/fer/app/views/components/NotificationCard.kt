@@ -20,16 +20,7 @@ import androidx.compose.ui.unit.dp
 import mx.fer.app.R
 import mx.fer.app.model.Notification
 import java.util.Date
-
-
-fun timeSince(date: Date): String =
-    DateUtils.getRelativeTimeSpanString(
-        date.time,
-        System.currentTimeMillis(),
-        DateUtils.MINUTE_IN_MILLIS,
-        DateUtils.FORMAT_ABBREV_RELATIVE,
-    ).toString()
-
+import mx.fer.app.util.toRelativeTime
 
 @Composable
 fun NotificationCard(
@@ -73,7 +64,7 @@ fun NotificationCard(
                         color = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text = timeSince(notificationItem.date),
+                        text = notificationItem.date.toRelativeTime(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
