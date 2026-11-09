@@ -57,4 +57,5 @@ dependencies {
 
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }
