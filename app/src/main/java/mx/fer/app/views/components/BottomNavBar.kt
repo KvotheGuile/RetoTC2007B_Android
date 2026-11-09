@@ -1,93 +1,102 @@
 package mx.fer.app.views.components
 
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import mx.fer.app.R
-
-private val AlturaBarraNav = 76.dp
-private val IconoBarraNav = 26.dp
-
-enum class Destino(
-    val etiqueta: String,
-    @DrawableRes val iconoActivo: Int,
-    @DrawableRes val iconoInactivo: Int
-) {
-    ANUNCIOS("Anuncios", R.drawable.ic_anuncios_filled, R.drawable.ic_anuncios_outline),
-    INICIO("Inicio", R.drawable.ic_inicio_filled, R.drawable.ic_inicio_outline),
-    PREFERENCIAS("Preferencias", R.drawable.ic_preferencias_filled, R.drawable.ic_preferencias_outline)
-}
 
 @Composable
-fun BottomNavBar(
-    seleccionado: Destino,
-    onSeleccionar: (Destino) -> Unit = {}
+fun PostItem(
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    @DrawableRes image: Int? = null,
+    date: String? = null,
+    imageFirst: Boolean = false,
+    descriptionMaxLines: Int = Int.MAX_VALUE
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
-            .navigationBarsPadding()
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
+
+        if (imageFirst) {
+            PostImage(image, title)
+            Spacer(Modifier.height(12.dp))
+        }
+
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(AlturaBarraNav)
-                .padding(horizontal = 12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            verticalAlignment = Alignment.CenterVertically
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Destino.entries.forEach { destino ->
-                NavItem(
-                    destino = destino,
-                    seleccionado = destino == seleccionado,
-                    onClick = { onSeleccionar(destino) }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onBackground,
+                modifier = Modifier.weight(1f)
+            )
+            if (date != null) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = date,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = descriptionMaxLines,
+            overflow = TextOverflow.Ellipsis
+        )
+
+        if (!imageFirst) {
+            Spacer(Modifier.height(14.dp))
+            PostImage(image, title)
         }
     }
 }
 
+/**
+ * Shows a gray placeholder when there is no image.
+ * When real data arrives, swap Image for Coil's AsyncImage here.
+ */
 @Composable
-private fun RowScope.NavItem(
-    destino: Destino,
-    seleccionado: Boolean,
-    onClick: () -> Unit
+fun PostImage(
+    @DrawableRes image: Int?,
+    contentDescription: String,
+    modifier: Modifier = Modifier
 ) {
-    val color = if (seleccionado) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.onSurfaceVariant
+    val shape = RoundedCornerShape(16.dp)
 
-    Column(
-        modifier = Modifier
-            .weight(1f)
-            .clickable(onClick = onClick),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            painter = painterResource(
-                if (seleccionado) destino.iconoActivo else destino.iconoInactivo
-            ),
-            contentDescription = destino.etiqueta,
-            tint = color,
-            modifier = Modifier.size(IconoBarraNav)
+    if (image != null) {
+        Image(
+            painter = painterResource(image),
+            contentDescription = contentDescription,
+            modifier = modifier
+                .fillMaxWidth()
+                .clip(shape),
+            contentScale = ContentScale.FillWidth
         )
-        Spacer(Modifier.height(4.dp))
-        Text(
-            text = destino.etiqueta,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (seleccionado) FontWeight.Bold else FontWeight.Normal,
-            color = color
+    } else {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .aspectRatio(16f / 10f)
+                .clip(shape)
+                .background(MaterialTheme.colorScheme.outlineVariant)
         )
     }
 }
