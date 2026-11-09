@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -29,7 +30,13 @@ fun NotificationCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        colors =
+
+            CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
     ) {
         Row(
             modifier = Modifier.padding(12.dp),
@@ -41,8 +48,6 @@ fun NotificationCard(
             if (contentText.length > 150){
                 contentText = contentText.substring(0, 125) + "...";
             }
-
-            //val iconToUse: ImageVector = Icons.Default.Notifications;
 
             Icon(
                 painter = painterResource(id = R.drawable.baseline_notifications_24), // Your XML file name
