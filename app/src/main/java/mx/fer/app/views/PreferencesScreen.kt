@@ -11,8 +11,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,16 +26,16 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import mx.fer.app.model.ThemeMode
 import mx.fer.app.model.UserPreferences
 import mx.fer.app.ui.theme.Dimens
+import mx.fer.app.viewmodels.UserViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PreferencesScreen(
     preferences: UserPreferences,
-    onPushChange: (Boolean) -> Unit,
-    onScholarshipChange: (Boolean) -> Unit,
-    onApplicantsChange: (Boolean) -> Unit,
-    onGeneralChange: (Boolean) -> Unit,
+    userViewModel: UserViewModel,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -48,7 +52,7 @@ fun PreferencesScreen(
             title = "Notificaciones push",
             description = "Recibe avisos directamente en tu celular",
             checked = preferences.pushNotificationsEnabled,
-            onCheckedChange = onPushChange
+            onCheckedChange = userViewModel::setPushNotificationsEnabled
         )
 
         Spacer(Modifier.height(32.dp))
@@ -61,20 +65,42 @@ fun PreferencesScreen(
             title = "Anuncios para becarios",
             description = "Renovaciones, requisitos y recordatorios",
             checked = preferences.interestedScholarship,
-            onCheckedChange = onScholarshipChange
+            onCheckedChange = userViewModel::setInterestedScholarship
         )
         PreferenceSwitchRow(
             title = "Anuncios para aspirantes",
             description = "Convocatorias y procesos de solicitud",
             checked = preferences.interestedApplicants,
-            onCheckedChange = onApplicantsChange
+            onCheckedChange = userViewModel::setInterestedApplicants
         )
         PreferenceSwitchRow(
             title = "Avisos generales",
             description = "Eventos y noticias de la fundación",
             checked = preferences.interestedGeneral,
-            onCheckedChange = onGeneralChange
+            onCheckedChange = userViewModel::setInterestedGeneral
         )
+
+        Spacer(Modifier.height(32.dp))
+
+        SectionHeader(
+            title = "Apariencia",
+            subtitle = "Elige cómo se ve la aplicación."
+        )
+        Spacer(Modifier.height(8.dp))
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            ThemeMode.entries.forEachIndexed { index, mode ->
+                SegmentedButton(
+                    selected = preferences.themeMode == mode,
+                    onClick = { userViewModel.setThemeMode(mode) },
+                    shape = SegmentedButtonDefaults.itemShape(
+                        index = index,
+                        count = ThemeMode.entries.size
+                    )
+                ) {
+                    Text(mode.label)
+                }
+            }
+        }
     }
 }
 

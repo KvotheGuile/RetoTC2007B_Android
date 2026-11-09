@@ -22,6 +22,8 @@ class UserPreferencesRepository(private val context: Context) {
         val SCHOLARSHIP = booleanPreferencesKey("interested_scholarship")
         val APPLICANTS = booleanPreferencesKey("interested_applicants")
         val GENERAL = booleanPreferencesKey("interested_general")
+
+        val THEME = stringPreferencesKey("theme_mode")
     }
 
     // Emits null until the user has completed the initial setup (no name saved yet)
@@ -36,7 +38,10 @@ class UserPreferencesRepository(private val context: Context) {
                 pushNotificationsEnabled = prefs[Keys.PUSH] ?: true,
                 interestedScholarship = prefs[Keys.SCHOLARSHIP] ?: true,
                 interestedApplicants = prefs[Keys.APPLICANTS] ?: true,
-                interestedGeneral = prefs[Keys.GENERAL] ?: true
+                interestedGeneral = prefs[Keys.GENERAL] ?: true,
+                themeMode = prefs[Keys.THEME]
+                    ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
+                    ?: ThemeMode.SYSTEM
             )
         }
 
@@ -47,6 +52,7 @@ class UserPreferencesRepository(private val context: Context) {
             prefs[Keys.SCHOLARSHIP] = preferences.interestedScholarship
             prefs[Keys.APPLICANTS] = preferences.interestedApplicants
             prefs[Keys.GENERAL] = preferences.interestedGeneral
+            prefs[Keys.THEME] = preferences.themeMode.name
         }
     }
 
@@ -55,6 +61,9 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setInterestedApplicants(enabled: Boolean) = setBoolean(Keys.APPLICANTS, enabled)
     suspend fun setInterestedGeneral(enabled: Boolean) = setBoolean(Keys.GENERAL, enabled)
 
+    suspend fun setThemeMode(mode: ThemeMode) {
+        context.dataStore.edit { it[Keys.THEME] = mode.name }
+    }
     suspend fun clear() {
         context.dataStore.edit { it.clear() }
     }

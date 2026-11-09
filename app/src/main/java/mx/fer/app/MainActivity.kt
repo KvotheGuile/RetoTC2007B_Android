@@ -143,10 +143,7 @@ fun MainContent(
                 )
                 Destination.PREFERENCES -> PreferencesScreen(
                     preferences = prefs,
-                    onPushChange = userViewModel::setPushNotificationsEnabled,
-                    onScholarshipChange = userViewModel::setInterestedScholarship,
-                    onApplicantsChange = userViewModel::setInterestedApplicants,
-                    onGeneralChange = userViewModel::setInterestedGeneral,
+                    userViewModel = userViewModel,
                     modifier = contentModifier
                 )
             }
