@@ -1,102 +1,93 @@
 package mx.fer.app.views.components
 
 import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import mx.fer.app.R
+
+private val NavBarHeight = 76.dp
+private val NavIconSize = 26.dp
+
+enum class Destination(
+    val label: String, // texto visible, en español
+    @DrawableRes val activeIcon: Int,
+    @DrawableRes val inactiveIcon: Int
+) {
+    ANNOUNCEMENTS("Anuncios", R.drawable.ic_announcements_filled, R.drawable.ic_announcements_outline),
+    HOME("Inicio", R.drawable.ic_home_filled, R.drawable.ic_home_outline),
+    PREFERENCES("Preferencias", R.drawable.ic_preferences_filled, R.drawable.ic_preferences_outline)
+}
 
 @Composable
-fun PostItem(
-    title: String,
-    description: String,
-    modifier: Modifier = Modifier,
-    @DrawableRes image: Int? = null,
-    date: String? = null,
-    imageFirst: Boolean = false,
-    descriptionMaxLines: Int = Int.MAX_VALUE
+fun BottomNavBar(
+    selected: Destination,
+    onSelect: (Destination) -> Unit = {}
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-
-        if (imageFirst) {
-            PostImage(image, title)
-            Spacer(Modifier.height(12.dp))
-        }
-
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .navigationBarsPadding()
+    ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(NavBarHeight)
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.weight(1f)
-            )
-            if (date != null) {
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = date,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            Destination.entries.forEach { destination ->
+                NavItem(
+                    destination = destination,
+                    isSelected = destination == selected,
+                    onClick = { onSelect(destination) }
                 )
             }
-        }
-
-        Spacer(Modifier.height(8.dp))
-
-        Text(
-            text = description,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = descriptionMaxLines,
-            overflow = TextOverflow.Ellipsis
-        )
-
-        if (!imageFirst) {
-            Spacer(Modifier.height(14.dp))
-            PostImage(image, title)
         }
     }
 }
 
-/**
- * Shows a gray placeholder when there is no image.
- * When real data arrives, swap Image for Coil's AsyncImage here.
- */
 @Composable
-fun PostImage(
-    @DrawableRes image: Int?,
-    contentDescription: String,
-    modifier: Modifier = Modifier
+private fun RowScope.NavItem(
+    destination: Destination,
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
-    val shape = RoundedCornerShape(16.dp)
+    val color = if (isSelected) MaterialTheme.colorScheme.primary
+    else MaterialTheme.colorScheme.onSurfaceVariant
 
-    if (image != null) {
-        Image(
-            painter = painterResource(image),
-            contentDescription = contentDescription,
-            modifier = modifier
-                .fillMaxWidth()
-                .clip(shape),
-            contentScale = ContentScale.FillWidth
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .clickable(onClick = onClick),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            painter = painterResource(
+                if (isSelected) destination.activeIcon else destination.inactiveIcon
+            ),
+            contentDescription = destination.label,
+            tint = color,
+            modifier = Modifier.size(NavIconSize)
         )
-    } else {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 10f)
-                .clip(shape)
-                .background(MaterialTheme.colorScheme.outlineVariant)
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = destination.label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+            color = color
         )
     }
 }

@@ -1,7 +1,5 @@
 package mx.fer.app.views.components
 
-import androidx.annotation.DrawableRes
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,24 +9,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import coil.compose.AsyncImage
 
 @Composable
-fun PublicacionItem(
-    titulo: String,
-    descripcion: String,
+fun PostItem(
+    title: String,
+    description: String,
     modifier: Modifier = Modifier,
-    @DrawableRes imagen: Int? = null,
-    fecha: String? = null,
-    imagenPrimero: Boolean = false,
-    maxLineasDescripcion: Int = Int.MAX_VALUE
+    image: String? = null,
+    date: String? = null,
+    imageFirst: Boolean = false,
+    descriptionMaxLines: Int = Int.MAX_VALUE
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
 
-        if (imagenPrimero) {
-            ImagenPublicacion(imagen, titulo)
+        if (imageFirst && image != null) {
+            PostImage(image, title)
             Spacer(Modifier.height(12.dp))
         }
 
@@ -37,15 +35,15 @@ fun PublicacionItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                text = titulo,
+                text = title,
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier.weight(1f)
             )
-            if (fecha != null) {
+            if (date != null) {
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = fecha,
+                    text = date,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -55,44 +53,35 @@ fun PublicacionItem(
         Spacer(Modifier.height(8.dp))
 
         Text(
-            text = descripcion,
+            text = description,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            maxLines = maxLineasDescripcion,
+            maxLines = descriptionMaxLines,
             overflow = TextOverflow.Ellipsis
         )
 
-        if (!imagenPrimero) {
+        if (!imageFirst && image != null) {
             Spacer(Modifier.height(14.dp))
-            ImagenPublicacion(imagen, titulo)
+            PostImage(image, title)
         }
     }
 }
 
+/** Imagen desde URL con Coil. El fondo gris se ve mientras carga. */
 @Composable
-fun ImagenPublicacion(
-    @DrawableRes imagen: Int?,
-    descripcion: String,
+fun PostImage(
+    url: String,
+    contentDescription: String,
     modifier: Modifier = Modifier
 ) {
-    val forma = RoundedCornerShape(16.dp)
-
-    if (imagen != null) {
-        Image(
-            painter = painterResource(imagen),
-            contentDescription = descripcion,
-            modifier = modifier
-                .fillMaxWidth()
-                .clip(forma),
-            contentScale = ContentScale.FillWidth
-        )
-    } else {
-        Box(
-            modifier = modifier
-                .fillMaxWidth()
-                .aspectRatio(16f / 10f)
-                .clip(forma)
-                .background(MaterialTheme.colorScheme.outlineVariant)
-        )
-    }
+    AsyncImage(
+        model = url,
+        contentDescription = contentDescription,
+        modifier = modifier
+            .fillMaxWidth()
+            .aspectRatio(16f / 10f)
+            .clip(RoundedCornerShape(16.dp))
+            .background(MaterialTheme.colorScheme.outlineVariant),
+        contentScale = ContentScale.Crop
+    )
 }
