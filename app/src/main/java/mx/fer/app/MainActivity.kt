@@ -26,10 +26,12 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.fer.app.model.UserPreferences
 import mx.fer.app.viewmodels.PostViewModel
 import mx.fer.app.viewmodels.UserViewModel
 import mx.fer.app.views.LoginScreen
 import mx.fer.app.views.PostScreen
+import mx.fer.app.views.PreferencesScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,6 +41,8 @@ class MainActivity : ComponentActivity() {
             FERMovilTheme {
                 val userViewModel: UserViewModel = viewModel()
                 val userState by userViewModel.uiState.collectAsStateWithLifecycle()
+                val prefs = userState.preferences
+
 
                 when {
                     userState.isLoading -> {
@@ -48,12 +52,12 @@ class MainActivity : ComponentActivity() {
                         ) { CircularProgressIndicator() }
                     }
 
-                    userState.preferences == null -> {
-                        LoginScreen(onContinuar = userViewModel::save)
+                    prefs == null -> {
+                        LoginScreen(onContinuar = userViewModel::completeSetup)
                     }
 
                     else -> {
-                        MainContent()
+                        MainContent(prefs, userViewModel)
                     }
                 }
             }
@@ -62,7 +66,10 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainContent(){
+fun MainContent(
+    prefs: UserPreferences,
+    userViewModel: UserViewModel
+){
     val postViewModel: PostViewModel = viewModel()   // one shared instance
 
     var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
@@ -134,15 +141,14 @@ fun MainContent(){
                     modifier = contentModifier,
                     onPostClick = { openedPostId = it }
                 )
-                Destination.PREFERENCES -> Box(
-                    modifier = contentModifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = destination.label,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                Destination.PREFERENCES -> PreferencesScreen(
+                    preferences = prefs,
+                    onPushChange = userViewModel::setPushNotificationsEnabled,
+                    onScholarshipChange = userViewModel::setInterestedScholarship,
+                    onApplicantsChange = userViewModel::setInterestedApplicants,
+                    onGeneralChange = userViewModel::setInterestedGeneral,
+                    modifier = contentModifier
+                )
             }
         }
     }
