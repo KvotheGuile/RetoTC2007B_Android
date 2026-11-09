@@ -15,20 +15,28 @@ val OpenSans = FontFamily(
 )
 
 val Typography = Typography(
-    headlineMedium = TextStyle( // títulos de pantalla: "Inicio", "Anuncios"
+    titleLarge = TextStyle(      // título del header: "Inicio", "Anuncios"
         fontFamily = OpenSans, fontWeight = FontWeight.Bold,
-        fontSize = 24.sp, lineHeight = 32.sp
+        fontSize = 20.sp
     ),
-    titleMedium = TextStyle( // título de publicación
+    titleMedium = TextStyle(     // título de publicación
         fontFamily = OpenSans, fontWeight = FontWeight.Bold,
-        fontSize = 17.sp, lineHeight = 24.sp
+        fontSize = 15.sp
     ),
-    bodyMedium = TextStyle( // descripciones
+    bodyMedium = TextStyle(      // descripción
         fontFamily = OpenSans, fontWeight = FontWeight.Normal,
-        fontSize = 14.sp, lineHeight = 21.sp
+        fontSize = 12.sp, lineHeight = 17.sp
     ),
-    labelMedium = TextStyle( // fechas, etiquetas de la barra inferior
+    labelLarge = TextStyle(      // tabs Becarios / Aspirantes (ajusta el tamaño si hace falta)
+        fontFamily = OpenSans, fontWeight = FontWeight.SemiBold,
+        fontSize = 13.sp
+    ),
+    labelMedium = TextStyle(     // "Lo lo más reciente", títulos de sección
+        fontFamily = OpenSans, fontWeight = FontWeight.Bold,
+        fontSize = 12.sp
+    ),
+    labelSmall = TextStyle(      // fecha y etiquetas de la barra inferior
         fontFamily = OpenSans, fontWeight = FontWeight.Normal,
-        fontSize = 12.sp, lineHeight = 16.sp
+        fontSize = 10.sp
     )
 )

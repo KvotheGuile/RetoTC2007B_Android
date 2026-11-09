@@ -7,21 +7,20 @@ import androidx.compose.runtime.Composable
 private val FerColorScheme = lightColorScheme(
     primary = AzulPrincipal,
     onPrimary = Blanco,
-    primaryContainer = AzulClaro,
-    onPrimaryContainer = AzulPrincipal,
     background = FondoGeneral,
     onBackground = AzulOscuro,
     surface = Blanco,
     onSurface = AzulOscuro,
     onSurfaceVariant = GrisDescripcion,
-    outlineVariant = DivisorSuave
+    outlineVariant = GrisDescripcion.copy(alpha = 0.15f)
 )
 
 @Composable
-fun FerTheme(content: @Composable () -> Unit) {
+fun FERMovilTheme(content: @Composable () -> Unit) {
     MaterialTheme(
         colorScheme = FerColorScheme,
         typography = Typography,
+        shapes = FerShapes,
         content = content
     )
 }
