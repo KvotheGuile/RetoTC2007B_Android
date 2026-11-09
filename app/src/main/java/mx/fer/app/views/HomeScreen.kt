@@ -22,7 +22,8 @@ import mx.fer.app.views.components.StateContent
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: PostViewModel = viewModel(key = "home")
+    viewModel: PostViewModel = viewModel(key = "home"),
+    onPostClick: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsState()
 
@@ -32,12 +33,13 @@ fun HomeScreen(
         onRetry = { viewModel.loadPosts() },
         modifier = modifier
     ) {
-        HomeContent(state.posts)
+        HomeContent(state.posts, onPostClick)
     }
 }
 
 @Composable
-private fun HomeContent(posts: List<Post>) {
+private fun HomeContent(posts: List<Post>,
+                        onPostClick: (String) -> Unit) {
     if (posts.isEmpty()) {
         Text(
             text = "Aún no hay publicaciones",
@@ -68,7 +70,9 @@ private fun HomeContent(posts: List<Post>) {
                     description = latest.description,
                     image = latest.linkImg,
                     date = latest.publishedAt.toRelativeTime(),
-                    imageFirst = true
+                    imageFirst = true,
+                    id = latest.id,
+                    onClick = onPostClick
                 )
             }
         }
@@ -95,7 +99,9 @@ private fun HomeContent(posts: List<Post>) {
                     description = post.description,
                     image = post.linkImg,
                     date = post.publishedAt.toRelativeTime(),
-                    modifier = Modifier.padding(bottom = Dimens.SpacingXL)
+                    modifier = Modifier.padding(bottom = Dimens.SpacingXL),
+                    id = post.id,
+                    onClick = onPostClick
                 )
             }
         }

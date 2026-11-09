@@ -1,6 +1,7 @@
 package mx.fer.app.views.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -21,9 +22,13 @@ fun PostItem(
     image: String? = null,
     date: String? = null,
     imageFirst: Boolean = false,
-    descriptionMaxLines: Int = Int.MAX_VALUE
+    descriptionMaxLines: Int = Int.MAX_VALUE,
+    id: String,
+    onClick: (String) -> Unit
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
+    Column(
+        modifier = modifier.fillMaxWidth().clickable{ onClick(id) }
+    ) {
 
         if (imageFirst && image != null) {
             PostImage(image, title)
