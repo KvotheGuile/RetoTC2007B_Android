@@ -91,7 +91,6 @@ object DummyData {
         )
     )
 
-    // Optional: so NotificationViewModel also works without a server
     val notifications: List<Notification> = listOf(
         Notification(
             id = "n1",
