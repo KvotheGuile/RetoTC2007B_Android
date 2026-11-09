@@ -27,7 +27,8 @@ private val tabs = listOf(
 @Composable
 fun AnnouncementsScreen(
     modifier: Modifier = Modifier,
-    viewModel: PostViewModel = viewModel(key = "announcements")
+    viewModel: PostViewModel = viewModel(key = "announcements"),
+    onPostClick: (String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsState()
     var selectedTab by rememberSaveable { mutableIntStateOf(0) }
@@ -76,7 +77,9 @@ fun AnnouncementsScreen(
                                 description = post.description,
                                 image = post.linkImg,
                                 date = post.publishedAt.toRelativeTime(),
-                                descriptionMaxLines = 2
+                                descriptionMaxLines = 2,
+                                id = post.id,
+                                onClick = onPostClick
                             )
                             if (index < posts.lastIndex) {
                                 HorizontalDivider(

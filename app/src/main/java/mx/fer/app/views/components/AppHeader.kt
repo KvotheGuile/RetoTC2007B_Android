@@ -5,7 +5,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +26,8 @@ private val BellIconSize = 20.dp
 @Composable
 fun AppHeader(
     title: String,
-    onNotificationsClick: () -> Unit = {}
+    onNotificationsClick: () -> Unit = {},
+    onBackClick: (() -> Unit)? = null   // null = no arrow
 ) {
     Box(
         modifier = Modifier
@@ -41,6 +44,16 @@ fun AppHeader(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (onBackClick != null) {
+                    IconButton(onClick = onBackClick) {
+                        androidx.compose.material3.Icon(
+                            painter = painterResource(id = R.drawable.baseline_arrow_back_24), // Your XML file name
+                            contentDescription = "Volver",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    Spacer(Modifier.width(4.dp))
+                }
                 Image(
                     painter = painterResource(R.drawable.logo_fer),
                     contentDescription = "Logo de la Fundación",
@@ -53,6 +66,7 @@ fun AppHeader(
                     color = MaterialTheme.colorScheme.onBackground
                 )
             }
+
 
             Box(
                 modifier = Modifier
