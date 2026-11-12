@@ -2,7 +2,17 @@ package mx.fer.app.views.components
 
 import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -16,7 +26,7 @@ import androidx.compose.ui.unit.dp
 import mx.fer.app.R
 
 private val NavBarHeight = 76.dp
-private val NavIconSize = 26.dp
+private val NavIconSize = 28.dp
 
 enum class Destination(
     val label: String, // texto visible, en español
@@ -39,6 +49,7 @@ fun BottomNavBar(
             .background(MaterialTheme.colorScheme.surface)
             .navigationBarsPadding()
     ) {
+        androidx.compose.material3.HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -64,24 +75,56 @@ private fun RowScope.NavItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
-    val color = if (isSelected) MaterialTheme.colorScheme.primary
-    else MaterialTheme.colorScheme.onSurfaceVariant
+    val color by animateColorAsState(
+        if (isSelected) MaterialTheme.colorScheme.primary
+        else MaterialTheme.colorScheme.onSurfaceVariant,
+        label = "navColor"
+    )
+    // Pill behind the selected icon grows in from the centre
+    val pillWidth by animateDpAsState(
+        targetValue = if (isSelected) 64.dp else 28.dp,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        label = "navPill"
+    )
+    val pillAlpha by animateFloatAsState(if (isSelected) 1f else 0f, label = "navPillAlpha")
 
     Column(
         modifier = Modifier
             .weight(1f)
-            .clickable(onClick = onClick),
+            .fillMaxHeight()
+            .selectable(
+                selected = isSelected,
+                role = Role.Tab,
+                interactionSource = null,
+                indication = null,
+                onClick = onClick
+            ),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Icon(
-            painter = painterResource(
-                if (isSelected) destination.activeIcon else destination.inactiveIcon
-            ),
-            contentDescription = destination.label,
-            tint = color,
-            modifier = Modifier.size(NavIconSize)
-        )
+        Box(
+            modifier = Modifier
+                .width(68.dp)
+                .height(36.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                Modifier
+                    .width(pillWidth)
+                    .fillMaxHeight()
+                    .graphicsLayer { alpha = pillAlpha }
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.primaryContainer)
+            )
+            Icon(
+                painter = painterResource(
+                    if (isSelected) destination.activeIcon else destination.inactiveIcon
+                ),
+                contentDescription = null,   // the label below already names it
+                tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer else color,
+                modifier = Modifier.size(NavIconSize)
+            )
+        }
         Spacer(Modifier.height(4.dp))
         Text(
             text = destination.label,
