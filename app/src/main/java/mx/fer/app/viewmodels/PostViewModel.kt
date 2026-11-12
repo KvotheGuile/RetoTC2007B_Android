@@ -14,6 +14,7 @@ import mx.fer.app.model.PostType
 
 data class PostsUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,     // pull-to-refresh: keeps the list visible
     val posts: List<Post> = emptyList(),
     val selectedType: PostType? = null,   // null = show all
     val selectedPost: Post? = null,       // post shown in the detail screen
@@ -44,6 +45,22 @@ class PostViewModel(
     }
 
     fun onTypeSelected(type: PostType?) = loadPosts(type)
+
+    // Pull to refresh: reloads without replacing the list with placeholders
+    fun refresh() {
+        if (_uiState.value.isRefreshing) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true) }
+            repository.getPosts(_uiState.value.selectedType)
+                .onSuccess { posts ->
+                    _uiState.update { it.copy(isRefreshing = false, posts = posts, error = null) }
+                }
+                .onFailure {
+                    // Keep the current list; the user can pull again
+                    _uiState.update { it.copy(isRefreshing = false) }
+                }
+        }
+    }
 
     // Detail screen
     fun selectPost(id: String) {
