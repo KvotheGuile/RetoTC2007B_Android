@@ -20,6 +20,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
@@ -30,6 +31,24 @@ import mx.fer.app.model.ThemeMode
 import mx.fer.app.model.UserPreferences
 import mx.fer.app.ui.theme.Dimens
 import mx.fer.app.viewmodels.UserViewModel
+import mx.fer.app.R
+import mx.fer.app.views.components.SectionTitle
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.res.painterResource
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.semantics
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,6 +99,17 @@ fun PreferencesScreen(
             onCheckedChange = userViewModel::setInterestedGeneral
         )
 
+        val noInterests = !preferences.interestedScholarship &&
+                !preferences.interestedApplicants &&
+                !preferences.interestedGeneral
+        AnimatedVisibility(
+            visible = noInterests,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            NoInterestsWarning(Modifier.padding(top = 16.dp))
+        }
+
         Spacer(Modifier.height(32.dp))
 
         SectionHeader(
@@ -101,24 +131,176 @@ fun PreferencesScreen(
                 }
             }
         }
+
+        Spacer(Modifier.height(32.dp))
+        AboutSection()
+        Spacer(Modifier.height(24.dp))
     }
 }
 
 @Composable
 private fun SectionHeader(title: String, subtitle: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onBackground
-    )
-    Spacer(Modifier.height(4.dp))
+    SectionTitle(title)
+    Spacer(Modifier.height(6.dp))
     Text(
         text = subtitle,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant
     )
-    Spacer(Modifier.height(8.dp))
+    Spacer(Modifier.height(4.dp))
+}
+
+/** Shown when every interest is off: the user would not receive any notification. */
+@Composable
+private fun NoInterestsWarning(modifier: Modifier = Modifier) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.medium)
+            .background(MaterialTheme.colorScheme.primaryContainer)
+            .semantics { liveRegion = LiveRegionMode.Polite }
+            .padding(16.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        Icon(
+            painter = painterResource(R.drawable.ic_error_outline),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(Modifier.width(12.dp))
+        Column {
+            Text(
+                text = "No recibirás ningún aviso",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = "Activa al menos un tema de interés para enterarte de convocatorias, fechas y novedades.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+        }
+    }
+}
+
+private data class AboutLink(
+    val label: String,
+    val detail: String,
+    val url: String,
+    @androidx.annotation.DrawableRes val icon: Int
+)
+
+// Official links, as published on www.fer.org.mx
+private val aboutLinks = listOf(
+    AboutLink("Sitio web", "fer.org.mx", "https://www.fer.org.mx", R.drawable.ic_language),
+    AboutLink("Llamar", "(662) 212-1453", "tel:6622121453", R.drawable.ic_call),
+    AboutLink("Facebook", "fer.org.mx", "https://www.facebook.com/fer.org.mx/", R.drawable.ic_facebook),
+    AboutLink("Instagram", "@fundacionespososrodriguez", "https://www.instagram.com/fundacionespososrodriguez/", R.drawable.ic_instagram)
+)
+
+/** "Acerca de la Fundación": logo, short description, official links and the app version. */
+@Composable
+private fun AboutSection() {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val version = remember {
+        runCatching { context.packageManager.getPackageInfo(context.packageName, 0).versionName }
+            .getOrNull() ?: ""
+    }
+
+    SectionHeader(
+        title = "Acerca de la Fundación",
+        subtitle = "Conoce más de la Fundación y síguenos en redes sociales."
+    )
+    Spacer(Modifier.height(12.dp))
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(MaterialTheme.shapes.large)
+            .background(MaterialTheme.colorScheme.surface)
+    ) {
+        // Standard logo at full size (above the manual's 1.5 cm minimum)
+        Row(
+            modifier = Modifier.padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(R.drawable.logo_fer),
+                contentDescription = "Fundación Esposos Rodríguez",
+                modifier = Modifier.size(72.dp)
+            )
+            Spacer(Modifier.width(16.dp))
+            Text(
+                "Fundación Esposos Rodríguez",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+        aboutLinks.forEach { link ->
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 72.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
+            AboutLinkRow(link) { openLink(context, link.url) }
+        }
+    }
+
+    Spacer(Modifier.height(20.dp))
+    Text(
+        text = "FER móvil · versión $version",
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+        modifier = Modifier.fillMaxWidth()
+    )
+}
+
+@Composable
+private fun AboutLinkRow(link: AboutLink, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClickLabel = "Abrir ${link.label}", onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(androidx.compose.foundation.shape.CircleShape)
+                .background(MaterialTheme.colorScheme.primaryContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(link.icon),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+        Spacer(Modifier.width(16.dp))
+        Column(Modifier.weight(1f)) {
+            Text(link.label, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurface)
+            Text(link.detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Icon(
+            painter = painterResource(R.drawable.ic_open_in_new),
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(18.dp)
+        )
+    }
+}
+
+/** Opens a web link in the browser/app, or the dialer for tel: links. Never crashes if nothing can handle it. */
+private fun openLink(context: android.content.Context, url: String) {
+    val action = if (url.startsWith("tel:")) android.content.Intent.ACTION_DIAL
+    else android.content.Intent.ACTION_VIEW
+    runCatching {
+        context.startActivity(android.content.Intent(action, android.net.Uri.parse(url)))
+    }
 }
 
 @Composable
