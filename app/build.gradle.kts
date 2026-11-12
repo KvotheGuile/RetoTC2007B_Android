@@ -47,6 +47,7 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
     implementation(libs.androidx.material3)
+    implementation(libs.androidx.core.splashscreen)
     testImplementation(libs.junit)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)

@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.FERMovil" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.FERMovil" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/fer_background</item>
+    </style>
+
+    <!-- Splash: navy background with the standard (white on blue) logo, per the identity manual -->
+    <style name="Theme.FERMovil.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/fer_logo_blue</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
+        <item name="postSplashScreenTheme">@style/Theme.FERMovil</item>
+    </style>
 </resources>
