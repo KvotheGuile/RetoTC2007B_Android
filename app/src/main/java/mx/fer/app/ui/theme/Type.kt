@@ -8,35 +8,37 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import mx.fer.app.R
 
+/*
+ * Open Sans stands in for Tahoma (the manual's primary font, not licensed for apps).
+ * Every style Material uses is defined here, so no screen falls back to Roboto.
+ * Sizes are larger than before (body 15-16sp) for older users and older phones.
+ */
 val OpenSans = FontFamily(
     Font(R.font.opensans_regular, FontWeight.Normal),
     Font(R.font.opensans_semibold, FontWeight.SemiBold),
     Font(R.font.opensans_bold, FontWeight.Bold)
 )
 
+private fun style(size: Int, line: Int, weight: FontWeight, spacing: Float = 0f) = TextStyle(
+    fontFamily = OpenSans,
+    fontWeight = weight,
+    fontSize = size.sp,
+    lineHeight = line.sp,
+    letterSpacing = spacing.sp
+)
+
 val Typography = Typography(
-    titleLarge = TextStyle(      // título del header: "Inicio", "Anuncios"
-        fontFamily = OpenSans, fontWeight = FontWeight.Bold,
-        fontSize = 20.sp
-    ),
-    titleMedium = TextStyle(     // título de publicación
-        fontFamily = OpenSans, fontWeight = FontWeight.Bold,
-        fontSize = 15.sp
-    ),
-    bodyMedium = TextStyle(      // descripción
-        fontFamily = OpenSans, fontWeight = FontWeight.Normal,
-        fontSize = 12.sp, lineHeight = 17.sp
-    ),
-    labelLarge = TextStyle(      // tabs Becarios / Aspirantes (ajusta el tamaño si hace falta)
-        fontFamily = OpenSans, fontWeight = FontWeight.SemiBold,
-        fontSize = 13.sp
-    ),
-    labelMedium = TextStyle(     // "Lo lo más reciente", títulos de sección
-        fontFamily = OpenSans, fontWeight = FontWeight.Bold,
-        fontSize = 12.sp
-    ),
-    labelSmall = TextStyle(      // fecha y etiquetas de la barra inferior
-        fontFamily = OpenSans, fontWeight = FontWeight.Normal,
-        fontSize = 10.sp
-    )
+    displaySmall = style(32, 40, FontWeight.Bold),
+    headlineLarge = style(30, 38, FontWeight.Bold),
+    headlineMedium = style(26, 34, FontWeight.Bold),    // onboarding titles
+    headlineSmall = style(24, 32, FontWeight.Bold),     // screen titles, post detail title
+    titleLarge = style(20, 28, FontWeight.Bold),        // featured post title
+    titleMedium = style(17, 24, FontWeight.SemiBold),   // card titles
+    titleSmall = style(15, 22, FontWeight.SemiBold),
+    bodyLarge = style(16, 26, FontWeight.Normal),       // post body
+    bodyMedium = style(15, 22, FontWeight.Normal),      // descriptions
+    bodySmall = style(13, 18, FontWeight.Normal),
+    labelLarge = style(14, 20, FontWeight.SemiBold),    // buttons, tabs
+    labelMedium = style(12, 16, FontWeight.Bold, 0.8f), // section titles (upper case)
+    labelSmall = style(12, 16, FontWeight.Normal)       // dates, bottom bar labels
 )
