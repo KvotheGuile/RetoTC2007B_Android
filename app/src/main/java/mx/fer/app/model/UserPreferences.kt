@@ -1,7 +1,9 @@
 package mx.fer.app.model
 
+/**
+ * Stored on the device only (RF-02). No personal data: the app never asks for a name (RF-09).
+ */
 data class UserPreferences(
-    val name: String,
     val pushNotificationsEnabled: Boolean,
     val interestedScholarship: Boolean,
     val interestedApplicants: Boolean,
@@ -9,11 +11,13 @@ data class UserPreferences(
     val themeMode: ThemeMode = ThemeMode.SYSTEM
 )
 
-// Used only by the login screen to pick the initial defaults. It is not stored.
-fun UserType.toDefaultPreferences(name: String) = UserPreferences(
-    name = name,
-    pushNotificationsEnabled = true,
-    interestedScholarship = this != UserType.ASPIRANTE,  // Becario: on, Aspirante: off
-    interestedApplicants = this != UserType.BECARIO,     // Aspirante: on, Becario: off
-    interestedGeneral = true
+/** Builds the initial preferences from the interests picked during onboarding. */
+fun preferencesFromOnboarding(
+    interests: Set<PostType>,
+    pushNotificationsEnabled: Boolean
+) = UserPreferences(
+    pushNotificationsEnabled = pushNotificationsEnabled,
+    interestedScholarship = PostType.SCHOLARSHIP in interests,
+    interestedApplicants = PostType.APPLICANTS in interests,
+    interestedGeneral = PostType.GENERAL in interests
 )

@@ -10,13 +10,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import mx.fer.app.model.ThemeMode
 import mx.fer.app.model.UserPreferences
+import mx.fer.app.model.PostType
 import mx.fer.app.model.UserPreferencesRepository
-import mx.fer.app.model.UserType
-import mx.fer.app.model.toDefaultPreferences
+import mx.fer.app.model.preferencesFromOnboarding
 
 data class UserUiState(
     val isLoading: Boolean = true,
-    val preferences: UserPreferences? = null   // null = show login
+    val preferences: UserPreferences? = null   // null = show onboarding
 )
 
 class UserViewModel(application: Application) : AndroidViewModel(application) {
@@ -31,10 +31,11 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
             initialValue = UserUiState()
         )
 
-    // Called by the login screen: saves the name plus the defaults for the chosen type
-    fun completeSetup(name: String, userType: UserType) {
+    // Called at the end of onboarding with the chosen interests (at least one)
+    fun completeOnboarding(interests: Set<PostType>, pushNotificationsEnabled: Boolean) {
+        require(interests.isNotEmpty()) { "At least one interest is required" }
         viewModelScope.launch {
-            repository.save(userType.toDefaultPreferences(name.trim()))
+            repository.save(preferencesFromOnboarding(interests, pushNotificationsEnabled))
         }
     }
 

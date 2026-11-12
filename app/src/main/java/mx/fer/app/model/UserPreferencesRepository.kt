@@ -17,7 +17,8 @@ private val Context.dataStore by preferencesDataStore(name = "user_preferences")
 class UserPreferencesRepository(private val context: Context) {
 
     private object Keys {
-        val NAME = stringPreferencesKey("name")
+        val ONBOARDING_DONE = booleanPreferencesKey("onboarding_completed")
+        val LEGACY_NAME = stringPreferencesKey("name")   // older installs: setup was marked by a saved name
         val PUSH = booleanPreferencesKey("push_notifications_enabled")
         val SCHOLARSHIP = booleanPreferencesKey("interested_scholarship")
         val APPLICANTS = booleanPreferencesKey("interested_applicants")
@@ -26,15 +27,15 @@ class UserPreferencesRepository(private val context: Context) {
         val THEME = stringPreferencesKey("theme_mode")
     }
 
-    // Emits null until the user has completed the initial setup (no name saved yet)
+    // Emits null until the user has finished onboarding
     val preferences: Flow<UserPreferences?> = context.dataStore.data
         .catch { e ->
             if (e is IOException) emit(emptyPreferences()) else throw e
         }
         .map { prefs ->
-            val name = prefs[Keys.NAME] ?: return@map null
+            val done = prefs[Keys.ONBOARDING_DONE] == true || prefs[Keys.LEGACY_NAME] != null
+            if (!done) return@map null
             UserPreferences(
-                name = name,
                 pushNotificationsEnabled = prefs[Keys.PUSH] ?: true,
                 interestedScholarship = prefs[Keys.SCHOLARSHIP] ?: true,
                 interestedApplicants = prefs[Keys.APPLICANTS] ?: true,
@@ -47,7 +48,8 @@ class UserPreferencesRepository(private val context: Context) {
 
     suspend fun save(preferences: UserPreferences) {
         context.dataStore.edit { prefs ->
-            prefs[Keys.NAME] = preferences.name
+            prefs[Keys.ONBOARDING_DONE] = true
+            prefs.remove(Keys.LEGACY_NAME)
             prefs[Keys.PUSH] = preferences.pushNotificationsEnabled
             prefs[Keys.SCHOLARSHIP] = preferences.interestedScholarship
             prefs[Keys.APPLICANTS] = preferences.interestedApplicants
