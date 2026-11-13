@@ -36,8 +36,9 @@ import coil.compose.AsyncImage
 import mx.fer.app.R
 import mx.fer.app.model.Post
 import mx.fer.app.ui.theme.Dimens
-import mx.fer.app.util.toRelativeTime
+import mx.fer.app.util.toFullDate
 import mx.fer.app.viewmodels.PostViewModel
+import mx.fer.app.views.components.AttachmentCard
 import mx.fer.app.views.components.EmptyState
 import mx.fer.app.views.components.PostImage
 import mx.fer.app.views.components.SectionTitle
@@ -140,8 +141,8 @@ private fun PostContent(post: Post) {
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                text = post.publishedAt.toRelativeTime(),
-                style = MaterialTheme.typography.labelSmall,
+                text = post.publishedAt.toFullDate(),   // "Hace 3 días · 8 nov 2026"
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(20.dp))
@@ -153,7 +154,16 @@ private fun PostContent(post: Post) {
                 )
             }
 
-            // TODO: PDF / video attachment cards once Post has an attachment field.
+            val attachments = post.attachments.orEmpty()
+            if (attachments.isNotEmpty()) {
+                Spacer(Modifier.height(28.dp))
+                SectionTitle(if (attachments.size == 1) "Archivo adjunto" else "Archivos adjuntos")
+                Spacer(Modifier.height(12.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    attachments.forEach { AttachmentCard(it) }
+                }
+            }
+            // TODO: video attachments once the backend defines how they arrive.
 
             Spacer(Modifier.height(32.dp))
         }

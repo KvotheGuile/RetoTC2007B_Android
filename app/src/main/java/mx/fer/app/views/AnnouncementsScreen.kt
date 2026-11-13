@@ -18,6 +18,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import kotlinx.coroutines.launch
 import mx.fer.app.model.Post
 import mx.fer.app.model.PostType
+import mx.fer.app.model.UserPreferences
 import mx.fer.app.ui.theme.Dimens
 import mx.fer.app.viewmodels.PostViewModel
 import mx.fer.app.views.components.EmptyState
@@ -33,12 +34,20 @@ private val tabs = listOf(
     FerTab("Aspirantes", PostType.APPLICANTS.icon)
 )
 
+/**
+ * Tab that matches the user's interests: Aspirantes if that's the only one they follow,
+ * otherwise Becarios (also when they follow both or neither).
+ */
+fun preferredAnnouncementsPage(prefs: UserPreferences): Int =
+    if (prefs.interestedApplicants && !prefs.interestedScholarship) channels.indexOf(PostType.APPLICANTS)
+    else channels.indexOf(PostType.SCHOLARSHIP)
+
 /** Scroll and page state, hoisted so they survive opening a post and coming back. */
 class AnnouncementsState(val pager: PagerState, val lists: List<LazyListState>)
 
 @Composable
-fun rememberAnnouncementsState(): AnnouncementsState {
-    val pager = rememberPagerState { channels.size }
+fun rememberAnnouncementsState(initialPage: Int = 0): AnnouncementsState {
+    val pager = rememberPagerState(initialPage = initialPage) { channels.size }
     val lists = channels.map { rememberLazyListState() }
     return remember(pager) { AnnouncementsState(pager, lists) }
 }

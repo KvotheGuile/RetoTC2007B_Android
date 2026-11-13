@@ -49,6 +49,7 @@ import mx.fer.app.views.components.BottomNavBar
 import mx.fer.app.views.components.Destination
 import mx.fer.app.views.components.LocalNavAnimatedScope
 import mx.fer.app.views.components.LocalSharedTransitionScope
+import mx.fer.app.views.preferredAnnouncementsPage
 import mx.fer.app.views.rememberAnnouncementsState
 
 class MainActivity : ComponentActivity() {
@@ -118,7 +119,17 @@ fun MainContent(
 
     // Hoisted so scroll position and selected tab survive opening a post and coming back
     val homeListState = rememberLazyListState()
-    val announcementsState = rememberAnnouncementsState()
+    val preferredPage = preferredAnnouncementsPage(prefs)
+    val announcementsState = rememberAnnouncementsState(initialPage = preferredPage)
+    // If the user changes their interests later, Anuncios follows on the next visit.
+    // Skipped on the first run so it doesn't undo a tab restored after rotation.
+    var lastPreferredPage by rememberSaveable { mutableIntStateOf(preferredPage) }
+    LaunchedEffect(preferredPage) {
+        if (preferredPage != lastPreferredPage) {
+            lastPreferredPage = preferredPage
+            announcementsState.pager.requestScrollToPage(preferredPage)
+        }
+    }
 
     BackHandler(enabled = openedPostId != null) { openedPostId = null }
     BackHandler(enabled = openedPostId == null && showNotifications) { showNotifications = false }

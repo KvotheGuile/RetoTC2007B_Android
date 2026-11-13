@@ -8,8 +8,32 @@ object DummyData {
     private fun daysAgo(days: Long, hours: Long = 0): Date =
         Date(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(days) - TimeUnit.HOURS.toMillis(hours))
 
-    // Imágenes de prueba (picsum.photos). Cada "seed" da una foto distinta.
-    private fun img(seed: String) = "https://picsum.photos/seed/$seed/600/400"
+    // Test images from Unsplash, fixed photo IDs. picsum.photos was used before but went down
+    // (timeouts and 503s), which left every card with an empty gray box.
+    private val photos = mapOf(
+        "convocatoria" to "1523240795612-9a054b0db644",
+        "renovacion" to "1434030216411-0b793f4b4173",
+        "taller" to "1531482615713-2afd69097998",
+        "resultados" to "1606761568499-6d2451b23c66",
+        "documentos" to "1456513080510-7bf3a84b82f8",
+        "octubre" to "1529390079861-591de354faf5",
+        "orientacion" to "1522202176988-66273c2fd55f",
+        "reunion" to "1517048676732-d65bc937f952",
+        "aniversario" to "1511632765486-a01980e01a18",
+        "excelencia" to "1427504494785-3a9ca7044f45",
+        "ingles" to "1546410531-bb4caa6b424d",
+        "practicas" to "1556761175-5973dc0f32e7",
+        "guia" to "1513258496099-48168024aec0",
+        "feria" to "1540575467063-178a50c2df87",
+        "utiles" to "1503676260728-1c00da094a0b",
+        "finanzas" to "1554224155-6726b3ff858f"
+    )
+    private fun img(key: String) =
+        "https://images.unsplash.com/photo-${photos.getValue(key)}?w=800&h=600&fit=crop&q=70"
+
+    // Sample PDFs (public test files) until the backend sends real attachments
+    private const val PDF_A = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+    private const val PDF_B = "https://pdfobject.com/pdf/sample.pdf"
 
     val posts: List<Post> = listOf(
         Post(
@@ -18,7 +42,11 @@ object DummyData {
             description = "Conoce las fechas, requisitos y pasos para participar en la nueva convocatoria de becas de la Fundación Esposos Rodríguez.",
             linkImg = img("convocatoria"),
             type = PostType.APPLICANTS,
-            publishedAt = daysAgo(0, 2)
+            publishedAt = daysAgo(0, 2),
+            attachments = listOf(
+                Attachment("Bases de la convocatoria 2026.pdf", PDF_A),
+                Attachment("Formato de solicitud.pdf", PDF_B)
+            )
         ),
         Post(
             id = "2",
@@ -26,7 +54,8 @@ object DummyData {
             description = "Ya se encuentran disponibles las fechas y requisitos para renovar tu beca. Consulta la información completa y entrega tus documentos a tiempo.",
             linkImg = img("renovacion"),
             type = PostType.SCHOLARSHIP,
-            publishedAt = daysAgo(1)
+            publishedAt = daysAgo(1),
+            attachments = listOf(Attachment("Requisitos de renovación.pdf", PDF_B))
         ),
         Post(
             id = "3",
@@ -34,7 +63,8 @@ object DummyData {
             description = "Te invitamos a conocer el proceso de selección, los requisitos y los beneficios de la beca. Resolveremos todas tus dudas en vivo.",
             linkImg = null,
             type = PostType.APPLICANTS,
-            publishedAt = daysAgo(2)
+            publishedAt = daysAgo(2),
+            attachments = listOf(Attachment("Presentación de la sesión informativa.pdf", PDF_A))
         ),
         Post(
             id = "4",
@@ -58,7 +88,8 @@ object DummyData {
             description = "Ten listos tu acta de nacimiento, historial académico, comprobante de domicilio y carta de motivos antes de iniciar tu solicitud.",
             linkImg = img("documentos"),
             type = PostType.APPLICANTS,
-            publishedAt = daysAgo(5)
+            publishedAt = daysAgo(5),
+            attachments = listOf(Attachment("Lista de documentos requeridos para el proceso de selección de aspirantes 2026.pdf", PDF_B))
         ),
         Post(
             id = "7",
@@ -170,7 +201,8 @@ object DummyData {
             description = "Resolvemos las dudas más comunes sobre requisitos, fechas, documentos y el proceso de selección. Revísalas antes de escribirnos.",
             linkImg = null,
             type = PostType.APPLICANTS,
-            publishedAt = daysAgo(31)
+            publishedAt = daysAgo(31),
+            attachments = listOf(Attachment("Preguntas frecuentes.pdf", PDF_A))
         ),
         Post(
             id = "21",
