@@ -70,6 +70,18 @@ class UserPreferencesRepository(private val context: Context) {
         }
     }
 
+    /**
+     * Forgets read IDs of notifications the server no longer sends, so the set doesn't grow
+     * forever. Call it only with a list that loaded successfully.
+     */
+    suspend fun keepReadNotificationsOnly(existingIds: Set<String>) {
+        context.dataStore.edit { prefs ->
+            val read = prefs[Keys.READ_NOTIFICATIONS] ?: return@edit
+            val kept = read intersect existingIds
+            if (kept.size != read.size) prefs[Keys.READ_NOTIFICATIONS] = kept
+        }
+    }
+
     suspend fun save(preferences: UserPreferences) {
         context.dataStore.edit { prefs ->
             prefs[Keys.ONBOARDING_DONE] = true
