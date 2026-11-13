@@ -48,6 +48,8 @@ import mx.fer.app.views.components.AppHeader
 import mx.fer.app.views.components.BottomNavBar
 import mx.fer.app.views.components.Destination
 import mx.fer.app.views.components.LocalNavAnimatedScope
+import mx.fer.app.views.components.LocalReduceMotion
+import mx.fer.app.views.components.systemAnimationsOff
 import mx.fer.app.views.components.LocalSharedTransitionScope
 import mx.fer.app.views.preferredAnnouncementsPage
 import mx.fer.app.views.rememberAnnouncementsState
@@ -81,22 +83,28 @@ class MainActivity : ComponentActivity() {
                 onDispose {}
             }
 
-            FERMovilTheme(darkTheme = darkTheme) {
-                when {
-                    // The splash screen covers this state
-                    userState.isLoading -> Box(
-                        Modifier
-                            .fillMaxSize()
-                            .background(MaterialTheme.colorScheme.background)
-                    )
+            // Accessibility options. Before onboarding there are no preferences yet, so the
+            // app follows Android: its font size and its "Remove animations" switch.
+            val reduceMotion = prefs?.reduceMotion ?: systemAnimationsOff()
 
-                    prefs == null -> OnboardingScreen(
-                        onFinish = { interests, pushEnabled ->
-                            userViewModel.completeOnboarding(interests, pushEnabled)
-                        }
-                    )
+            FERMovilTheme(darkTheme = darkTheme, textScale = prefs?.textSize?.factor ?: 1f) {
+                CompositionLocalProvider(LocalReduceMotion provides reduceMotion) {
+                    when {
+                        // The splash screen covers this state
+                        userState.isLoading -> Box(
+                            Modifier
+                                .fillMaxSize()
+                                .background(MaterialTheme.colorScheme.background)
+                        )
 
-                    else -> MainContent(prefs, userViewModel)
+                        prefs == null -> OnboardingScreen(
+                            onFinish = { interests, pushEnabled ->
+                                userViewModel.completeOnboarding(interests, pushEnabled)
+                            }
+                        )
+
+                        else -> MainContent(prefs, userViewModel)
+                    }
                 }
             }
         }

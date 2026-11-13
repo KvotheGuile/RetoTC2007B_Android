@@ -8,7 +8,10 @@ data class UserPreferences(
     val interestedScholarship: Boolean,
     val interestedApplicants: Boolean,
     val interestedGeneral: Boolean,
-    val themeMode: ThemeMode = ThemeMode.SYSTEM
+    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val textSize: TextSize = TextSize.SYSTEM,
+    // null = follow Android's "Remove animations" setting until the user picks a value here
+    val reduceMotion: Boolean? = null
 )
 
 /** Builds the initial preferences from the interests picked during onboarding. */

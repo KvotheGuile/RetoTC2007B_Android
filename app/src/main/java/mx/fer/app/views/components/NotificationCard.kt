@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
@@ -80,33 +81,48 @@ fun NotificationCard(
             )
         }
         Column(Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            val title: @Composable (Modifier) -> Unit = { mod ->
                 Text(
                     text = notificationItem.title,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
                     color = if (isRead) MaterialTheme.colorScheme.onSurface
                     else MaterialTheme.colorScheme.onPrimaryContainer,
-                    maxLines = 1,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    modifier = mod
                 )
-                Spacer(Modifier.width(8.dp))
-                Text(
-                    text = notificationItem.date.toRelativeTime(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (isRead) MaterialTheme.colorScheme.onSurfaceVariant
-                    else MaterialTheme.colorScheme.primary
-                )
-                if (!isRead) {
-                    // "New" dot, the same navy as the rest of the app
-                    Spacer(Modifier.width(6.dp))
-                    Box(
-                        Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .background(MaterialTheme.colorScheme.primary)
+            }
+            val dateAndDot: @Composable () -> Unit = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = notificationItem.date.toRelativeTime(),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                        else MaterialTheme.colorScheme.primary
                     )
+                    if (!isRead) {
+                        // "New" dot, the same navy as the rest of the app
+                        Spacer(Modifier.width(6.dp))
+                        Box(
+                            Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.primary)
+                        )
+                    }
+                }
+            }
+            // With large text the date beside the title squeezes it until words break,
+            // so from 1.25x on the date moves to its own line under the title.
+            if (LocalDensity.current.fontScale >= 1.25f) {
+                title(Modifier)
+                dateAndDot()
+            } else {
+                Row(verticalAlignment = Alignment.Top) {
+                    title(Modifier.weight(1f))
+                    Spacer(Modifier.width(8.dp))
+                    Box(Modifier.padding(top = 2.dp)) { dateAndDot() }
                 }
             }
             Spacer(Modifier.height(2.dp))

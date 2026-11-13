@@ -1,5 +1,7 @@
 package mx.fer.app.views
 
+import mx.fer.app.views.components.LocalReduceMotion
+import mx.fer.app.views.components.itemMotion
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -64,12 +66,17 @@ fun AnnouncementsScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     val pager = screenState.pager
+    val reduceMotion = LocalReduceMotion.current
 
     Column(modifier = modifier.fillMaxSize()) {
         FerTabs(
             options = tabs,
             selectedIndex = pager.currentPage,
-            onSelect = { scope.launch { pager.animateScrollToPage(it) } },
+            onSelect = {
+                scope.launch {
+                    if (reduceMotion) pager.scrollToPage(it) else pager.animateScrollToPage(it)
+                }
+            },
             modifier = Modifier.padding(horizontal = Dimens.ScreenPadding, vertical = 8.dp)
         )
 
@@ -130,7 +137,7 @@ private fun ChannelList(
         verticalArrangement = Arrangement.spacedBy(Dimens.SpacingL)
     ) {
         items(posts, key = { it.id }) { post ->
-            PostCard(post = post, onClick = onPostClick, modifier = Modifier.animateItem())
+            PostCard(post = post, onClick = onPostClick, modifier = itemMotion())
         }
     }
 }

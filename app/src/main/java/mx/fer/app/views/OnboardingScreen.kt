@@ -1,5 +1,8 @@
 package mx.fer.app.views
 
+import androidx.compose.animation.core.spring
+import mx.fer.app.views.components.motionSpec
+import mx.fer.app.views.components.LocalReduceMotion
 import android.Manifest
 import android.os.Build
 import androidx.activity.compose.BackHandler
@@ -76,9 +79,11 @@ fun OnboardingScreen(
 
     BackHandler(enabled = step > 0) { step-- }
 
+    val reduceMotion = LocalReduceMotion.current
     AnimatedContent(
         targetState = step,
         transitionSpec = {
+            if (reduceMotion) return@AnimatedContent fadeIn() togetherWith fadeOut()
             val forward = targetState > initialState
             (slideInHorizontally { if (forward) it / 3 else -it / 3 } + fadeIn()) togetherWith
                     (slideOutHorizontally { if (forward) -it / 3 else it / 3 } + fadeOut())
@@ -425,7 +430,11 @@ private fun StepScaffold(
 private fun StepDots(current: Int, total: Int) {
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         repeat(total) { i ->
-            val width by animateDpAsState(if (i == current) 24.dp else 8.dp, label = "dot")
+            val width by animateDpAsState(
+                if (i == current) 24.dp else 8.dp,
+                animationSpec = motionSpec(spring()),
+                label = "dot"
+            )
             Box(
                 Modifier
                     .height(8.dp)

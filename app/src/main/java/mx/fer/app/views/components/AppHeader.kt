@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import mx.fer.app.R
+import mx.fer.app.ui.theme.CappedFontScale
 import mx.fer.app.ui.theme.Dimens
 
 private val HeaderHeight = 64.dp
@@ -77,7 +78,10 @@ fun AppHeader(
                                     containerColor = MaterialTheme.colorScheme.primary,
                                     contentColor = MaterialTheme.colorScheme.onPrimary
                                 ) {
-                                    Text(if (unreadCount > 9) "9+" else unreadCount.toString())
+                                    // The badge sits on a 22dp icon; a huge number would cover it
+                                    CappedFontScale(max = 1.3f) {
+                                        Text(if (unreadCount > 9) "9+" else unreadCount.toString())
+                                    }
                                 }
                             }
                         }

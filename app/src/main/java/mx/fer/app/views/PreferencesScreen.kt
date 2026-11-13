@@ -1,5 +1,6 @@
 package mx.fer.app.views
 
+import mx.fer.app.views.components.LocalReduceMotion
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -27,8 +28,13 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import mx.fer.app.model.TextSize
 import mx.fer.app.model.ThemeMode
+import mx.fer.app.views.components.systemAnimationsOff
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.unit.sp
 import mx.fer.app.model.UserPreferences
+import mx.fer.app.ui.theme.CappedFontScale
 import mx.fer.app.ui.theme.Dimens
 import mx.fer.app.viewmodels.UserViewModel
 import mx.fer.app.R
@@ -99,13 +105,14 @@ fun PreferencesScreen(
             onCheckedChange = userViewModel::setInterestedGeneral
         )
 
+        val reduceMotion = LocalReduceMotion.current
         val noInterests = !preferences.interestedScholarship &&
                 !preferences.interestedApplicants &&
                 !preferences.interestedGeneral
         AnimatedVisibility(
             visible = noInterests,
-            enter = expandVertically() + fadeIn(),
-            exit = shrinkVertically() + fadeOut()
+            enter = if (reduceMotion) fadeIn() else expandVertically() + fadeIn(),
+            exit = if (reduceMotion) fadeOut() else shrinkVertically() + fadeOut()
         ) {
             NoInterestsWarning(Modifier.padding(top = 16.dp))
         }
@@ -133,8 +140,85 @@ fun PreferencesScreen(
         }
 
         Spacer(Modifier.height(32.dp))
+
+        SectionHeader(
+            title = "Accesibilidad",
+            subtitle = "Ajusta la app para leerla con más comodidad."
+        )
+        Spacer(Modifier.height(12.dp))
+        TextSizePicker(
+            selected = preferences.textSize,
+            onSelect = userViewModel::setTextSize
+        )
+        Spacer(Modifier.height(4.dp))
+        PreferenceSwitchRow(
+            title = "Reducir movimiento",
+            description = "Quita las animaciones que deslizan o agrandan elementos",
+            // Until the user decides, reflect Android's own "Remove animations" setting
+            checked = preferences.reduceMotion ?: systemAnimationsOff(),
+            onCheckedChange = userViewModel::setReduceMotion
+        )
+
+        Spacer(Modifier.height(32.dp))
         AboutSection()
         Spacer(Modifier.height(24.dp))
+    }
+}
+
+/**
+ * "Tamaño del texto": three "Aa" of growing size in a segmented row like the theme picker.
+ * The whole screen resizes as soon as one is picked, so it works as its own preview.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TextSizePicker(
+    selected: TextSize,
+    onSelect: (TextSize) -> Unit
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = "Tamaño del texto",
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f)
+        )
+        // Name of the current option, since the buttons only show "Aa"
+        Text(
+            text = selected.label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite }
+        )
+    }
+    Spacer(Modifier.height(8.dp))
+    val glyphSizes = listOf(14.sp, 18.sp, 22.sp)
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        TextSize.entries.forEachIndexed { index, size ->
+            SegmentedButton(
+                selected = selected == size,
+                onClick = { onSelect(size) },
+                shape = SegmentedButtonDefaults.itemShape(index = index, count = TextSize.entries.size),
+                // No checkmark: the filled segment already marks the choice, and the icon pushed
+                // the "Aa" off-centre in the selected one
+                icon = {},
+                // Same fixed height for the three, so the big "Aa" doesn't make its segment taller
+                modifier = Modifier
+                    .height(48.dp)
+                    .semantics { contentDescription = "Texto ${size.label.lowercase()}" }
+            ) {
+                // The glyphs show the three sizes, so they must not grow with the text setting
+                CappedFontScale(max = 1f) {
+                    Text(
+                        text = "Aa",
+                        fontSize = glyphSizes[index],
+                        lineHeight = glyphSizes[index],
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1
+                    )
+                }
+            }
+        }
     }
 }
 

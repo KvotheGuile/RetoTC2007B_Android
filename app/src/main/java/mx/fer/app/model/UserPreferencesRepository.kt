@@ -26,6 +26,8 @@ class UserPreferencesRepository(private val context: Context) {
         val GENERAL = booleanPreferencesKey("interested_general")
 
         val THEME = stringPreferencesKey("theme_mode")
+        val TEXT_SIZE = stringPreferencesKey("text_size")
+        val REDUCE_MOTION = booleanPreferencesKey("reduce_motion")
 
         val READ_NOTIFICATIONS = stringSetPreferencesKey("read_notification_ids")
     }
@@ -45,7 +47,11 @@ class UserPreferencesRepository(private val context: Context) {
                 interestedGeneral = prefs[Keys.GENERAL] ?: true,
                 themeMode = prefs[Keys.THEME]
                     ?.let { runCatching { ThemeMode.valueOf(it) }.getOrNull() }
-                    ?: ThemeMode.SYSTEM
+                    ?: ThemeMode.SYSTEM,
+                textSize = prefs[Keys.TEXT_SIZE]
+                    ?.let { runCatching { TextSize.valueOf(it) }.getOrNull() }
+                    ?: TextSize.SYSTEM,
+                reduceMotion = prefs[Keys.REDUCE_MOTION]
             )
         }
 
@@ -73,6 +79,8 @@ class UserPreferencesRepository(private val context: Context) {
             prefs[Keys.APPLICANTS] = preferences.interestedApplicants
             prefs[Keys.GENERAL] = preferences.interestedGeneral
             prefs[Keys.THEME] = preferences.themeMode.name
+            prefs[Keys.TEXT_SIZE] = preferences.textSize.name
+            preferences.reduceMotion?.let { prefs[Keys.REDUCE_MOTION] = it }
         }
     }
 
@@ -84,6 +92,11 @@ class UserPreferencesRepository(private val context: Context) {
     suspend fun setThemeMode(mode: ThemeMode) {
         context.dataStore.edit { it[Keys.THEME] = mode.name }
     }
+    suspend fun setTextSize(size: TextSize) {
+        context.dataStore.edit { it[Keys.TEXT_SIZE] = size.name }
+    }
+    suspend fun setReduceMotion(enabled: Boolean) = setBoolean(Keys.REDUCE_MOTION, enabled)
+
     suspend fun clear() {
         context.dataStore.edit { it.clear() }
     }
