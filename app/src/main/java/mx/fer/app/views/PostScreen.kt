@@ -7,7 +7,11 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -44,6 +48,9 @@ import mx.fer.app.views.components.PostImage
 import mx.fer.app.views.components.SectionTitle
 import mx.fer.app.views.components.label
 
+/** Height of the area holding the back and share buttons, under the status bar. */
+private val TopBarHeight = 64.dp
+
 /** Post detail (RF-08): image on top, then channel, title, date and the full text. */
 @Composable
 fun PostScreen(
@@ -66,13 +73,28 @@ fun PostScreen(
     val post = state.selectedPost?.takeIf { it.id == postId }
         ?: state.posts.firstOrNull { it.id == postId }
 
+    val scroll = rememberScrollState()
+    val hasImage = post?.linkImg != null
+
+    // Once the content scrolls under the floating buttons, a solid bar appears behind them
+    // so the title doesn't overlap the status bar and the back/share buttons.
+    val density = LocalDensity.current
+    val screenWidth = LocalConfiguration.current.screenWidthDp.dp
+    val statusBarTop = WindowInsets.statusBars.getTop(density)
+    val solidBarAfterPx = with(density) {
+        if (hasImage) ((screenWidth * 0.75f) - TopBarHeight).toPx() - statusBarTop
+        else 1f
+    }
+    val solidBar by remember(solidBarAfterPx) { derivedStateOf { scroll.value > solidBarAfterPx } }
+    val barAlpha by animateFloatAsState(if (solidBar) 1f else 0f, label = "postTopBar")
+
     Box(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
         when {
-            post != null -> PostContent(post)
+            post != null -> PostContent(post, scroll)
 
             state.error != null -> EmptyState(
                 icon = R.drawable.ic_error_outline,
@@ -85,22 +107,30 @@ fun PostScreen(
             else -> CircularProgressIndicator(Modifier.align(Alignment.Center))
         }
 
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .graphicsLayer { alpha = barAlpha }
+                .background(MaterialTheme.colorScheme.background)
+                .statusBarsPadding()
+                .height(TopBarHeight)
+        )
         TopActions(
             onBack = onBack,
             post = post,
-            overImage = post?.linkImg != null
+            overImage = hasImage && !solidBar
         )
     }
 }
 
 @Composable
-private fun PostContent(post: Post) {
+private fun PostContent(post: Post, scroll: ScrollState) {
     var zoomed by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(scroll)
             .navigationBarsPadding()
     ) {
         val imageUrl = post.linkImg
@@ -128,7 +158,7 @@ private fun PostContent(post: Post) {
                 )
             }
         } else {
-            Spacer(Modifier.statusBarsPadding().height(64.dp))
+            Spacer(Modifier.statusBarsPadding().height(TopBarHeight))
         }
 
         Column(Modifier.padding(horizontal = Dimens.ScreenPadding, vertical = Dimens.SpacingXL)) {
