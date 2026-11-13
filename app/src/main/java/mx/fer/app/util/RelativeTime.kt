@@ -19,3 +19,10 @@ fun Date.toRelativeTime(): String {
         else -> SimpleDateFormat("d MMM yyyy", Locale("es", "MX")).format(this)
     }
 }
+
+/** "Hace 3 días · 8 nov 2026". Past 30 days the relative part is already a date, so it shows once. */
+fun Date.toFullDate(): String {
+    val date = SimpleDateFormat("d MMM yyyy", Locale("es", "MX")).format(this)
+    val relative = toRelativeTime()
+    return if (relative == date) date else "$relative · $date"
+}

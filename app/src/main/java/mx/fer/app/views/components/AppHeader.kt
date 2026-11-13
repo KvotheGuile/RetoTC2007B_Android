@@ -2,6 +2,8 @@ package mx.fer.app.views.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -27,7 +29,8 @@ private val HeaderHeight = 64.dp
 fun AppHeader(
     title: String,
     onNotificationsClick: (() -> Unit)? = null,   // null = hide the bell
-    onBackClick: (() -> Unit)? = null              // null = no arrow
+    onBackClick: (() -> Unit)? = null,             // null = no arrow
+    unreadCount: Int = 0                           // badge on the bell; 0 = no badge
 ) {
     Box(
         modifier = Modifier
@@ -66,12 +69,30 @@ fun AppHeader(
             if (onNotificationsClick != null) {
                 // IconButton gives a 48dp touch target
                 IconButton(onClick = onNotificationsClick) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_notifications),
-                        contentDescription = "Notificaciones",
-                        tint = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.size(22.dp)
-                    )
+                    BadgedBox(
+                        badge = {
+                            if (unreadCount > 0) {
+                                // Navy instead of the default red: all color comes from #143F90
+                                Badge(
+                                    containerColor = MaterialTheme.colorScheme.primary,
+                                    contentColor = MaterialTheme.colorScheme.onPrimary
+                                ) {
+                                    Text(if (unreadCount > 9) "9+" else unreadCount.toString())
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_notifications),
+                            contentDescription = when (unreadCount) {
+                                0 -> "Notificaciones"
+                                1 -> "Notificaciones, 1 sin leer"
+                                else -> "Notificaciones, $unreadCount sin leer"
+                            },
+                            tint = MaterialTheme.colorScheme.onBackground,
+                            modifier = Modifier.size(22.dp)
+                        )
+                    }
                 }
             }
         }

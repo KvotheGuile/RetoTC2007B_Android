@@ -14,7 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import mx.fer.app.R
@@ -25,7 +29,8 @@ import mx.fer.app.util.toRelativeTime
 fun NotificationCard(
     onClick: () -> Unit,
     notificationItem: Notification,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isRead: Boolean = true
 ) {
     val interaction = remember { MutableInteractionSource() }
     Row(
@@ -33,8 +38,14 @@ fun NotificationCard(
             .fillMaxWidth()
             .pressScale(interaction, 0.98f)
             .clip(MaterialTheme.shapes.medium)
-            .background(MaterialTheme.colorScheme.surface)
+            // Unread = light brand blue, read = plain white card. Gray would blend into the
+            // page background and read as "disabled".
+            .background(
+                if (isRead) MaterialTheme.colorScheme.surface
+                else MaterialTheme.colorScheme.primaryContainer
+            )
             .clickable(interactionSource = interaction, indication = ripple(), onClick = onClick)
+            .semantics { stateDescription = if (isRead) "Leída" else "No leída" }
             .padding(16.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
         verticalAlignment = Alignment.Top
@@ -47,8 +58,14 @@ fun NotificationCard(
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(
-                    if (standalone) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.primaryContainer
+                    when {
+                        standalone -> MaterialTheme.colorScheme.primary
+                        isRead -> MaterialTheme.colorScheme.primaryContainer
+                        // One step darker than the light-blue card, so the circle stays the same
+                        // family instead of reading as a white hole
+                        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            .compositeOver(MaterialTheme.colorScheme.primaryContainer)
+                    }
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -67,7 +84,9 @@ fun NotificationCard(
                 Text(
                     text = notificationItem.title,
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
+                    color = if (isRead) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onPrimaryContainer,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f)
@@ -76,14 +95,26 @@ fun NotificationCard(
                 Text(
                     text = notificationItem.date.toRelativeTime(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = if (isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.primary
                 )
+                if (!isRead) {
+                    // "New" dot, the same navy as the rest of the app
+                    Spacer(Modifier.width(6.dp))
+                    Box(
+                        Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
+                    )
+                }
             }
             Spacer(Modifier.height(2.dp))
             Text(
                 text = notificationItem.message,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = if (isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onPrimaryContainer,
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis
             )

@@ -34,6 +34,7 @@ import mx.fer.app.model.ThemeMode
 import mx.fer.app.model.UserPreferences
 import mx.fer.app.ui.theme.FERMovilTheme
 import mx.fer.app.ui.theme.isDark
+import mx.fer.app.viewmodels.NotificationViewModel
 import mx.fer.app.viewmodels.PostViewModel
 import mx.fer.app.viewmodels.UserViewModel
 import mx.fer.app.views.AnnouncementsScreen
@@ -108,6 +109,8 @@ fun MainContent(
     userViewModel: UserViewModel
 ) {
     val postViewModel: PostViewModel = viewModel()   // one shared instance for the detail screen
+    val notificationViewModel: NotificationViewModel = viewModel()   // feeds the bell badge and the list
+    val notificationState by notificationViewModel.uiState.collectAsStateWithLifecycle()
 
     var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
     var showNotifications by rememberSaveable { mutableStateOf(false) }
@@ -141,6 +144,8 @@ fun MainContent(
                     MainScaffold(
                         prefs = prefs,
                         userViewModel = userViewModel,
+                        notificationViewModel = notificationViewModel,
+                        unreadCount = notificationState.unreadCount,
                         destination = destination,
                         onDestinationChange = {
                             destination = it
@@ -162,6 +167,8 @@ fun MainContent(
 private fun MainScaffold(
     prefs: UserPreferences,
     userViewModel: UserViewModel,
+    notificationViewModel: NotificationViewModel,
+    unreadCount: Int,
     destination: Destination,
     onDestinationChange: (Destination) -> Unit,
     showNotifications: Boolean,
@@ -180,7 +187,8 @@ private fun MainScaffold(
                 },
                 onBackClick = if (showNotifications) {
                     { onShowNotificationsChange(false) }
-                } else null
+                } else null,
+                unreadCount = unreadCount
             )
         },
         bottomBar = {
@@ -195,9 +203,8 @@ private fun MainScaffold(
             when (target) {
                 null -> NotificationScreen(
                     modifier = contentModifier,
-                    onClickNotif = { id ->
-                        if (id != null) onOpenPost(id)   // null = notification without a post
-                    }
+                    viewModel = notificationViewModel,
+                    onOpenPost = onOpenPost   // notices without a post open a sheet inside the screen
                 )
                 Destination.HOME -> HomeScreen(
                     modifier = contentModifier,

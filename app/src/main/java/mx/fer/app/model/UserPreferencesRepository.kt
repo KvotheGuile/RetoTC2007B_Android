@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -25,6 +26,8 @@ class UserPreferencesRepository(private val context: Context) {
         val GENERAL = booleanPreferencesKey("interested_general")
 
         val THEME = stringPreferencesKey("theme_mode")
+
+        val READ_NOTIFICATIONS = stringSetPreferencesKey("read_notification_ids")
     }
 
     // Emits null until the user has finished onboarding
@@ -45,6 +48,21 @@ class UserPreferencesRepository(private val context: Context) {
                     ?: ThemeMode.SYSTEM
             )
         }
+
+    // IDs of the notifications the user already opened. Stored apart from the preferences
+    // so it works the same before and after onboarding.
+    val readNotificationIds: Flow<Set<String>> = context.dataStore.data
+        .catch { e ->
+            if (e is IOException) emit(emptyPreferences()) else throw e
+        }
+        .map { prefs -> prefs[Keys.READ_NOTIFICATIONS] ?: emptySet() }
+
+    suspend fun markNotificationsRead(ids: Collection<String>) {
+        if (ids.isEmpty()) return
+        context.dataStore.edit { prefs ->
+            prefs[Keys.READ_NOTIFICATIONS] = (prefs[Keys.READ_NOTIFICATIONS] ?: emptySet()) + ids
+        }
+    }
 
     suspend fun save(preferences: UserPreferences) {
         context.dataStore.edit { prefs ->

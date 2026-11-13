@@ -267,7 +267,7 @@ object DummyData {
             id = "n8",
             idPublication = null,
             title = "Recordatorio",
-            message = "Entrega tus documentos de renovación antes del viernes.",
+            message = "Entrega tus documentos de renovación antes del viernes. Puedes llevarlos a la oficina de la Fundación de 9:00 a 17:00 h o enviarlos escaneados a becas@fer.org.mx. Si tienes dudas, llámanos al 55 1234 5678.",
             type = PostType.GENERAL,
             date = daysAgo(8)
         )
