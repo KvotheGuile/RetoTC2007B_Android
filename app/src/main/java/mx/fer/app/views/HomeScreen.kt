@@ -1,5 +1,6 @@
 package mx.fer.app.views
 
+import mx.fer.app.views.components.itemMotion
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -83,7 +84,7 @@ private fun HomeContent(
     ) {
         item(key = "title-latest") { SectionTitle("Lo más reciente") }
         item(key = latest.id) {
-            FeaturedPostCard(post = latest, onClick = onPostClick, modifier = Modifier.animateItem())
+            FeaturedPostCard(post = latest, onClick = onPostClick, modifier = itemMotion())
         }
 
         if (recent.isNotEmpty()) {
@@ -91,7 +92,7 @@ private fun HomeContent(
                 SectionTitle("Publicaciones recientes", Modifier.padding(top = Dimens.SpacingS))
             }
             items(recent, key = { it.id }) { post ->
-                PostCard(post = post, onClick = onPostClick, modifier = Modifier.animateItem())
+                PostCard(post = post, onClick = onPostClick, modifier = itemMotion())
             }
         }
     }

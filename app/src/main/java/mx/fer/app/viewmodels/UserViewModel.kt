@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import mx.fer.app.model.TextSize
 import mx.fer.app.model.ThemeMode
 import mx.fer.app.model.UserPreferences
 import mx.fer.app.model.PostType
@@ -57,6 +58,14 @@ class UserViewModel(application: Application) : AndroidViewModel(application) {
 
     fun setThemeMode(mode: ThemeMode) {
         viewModelScope.launch { repository.setThemeMode(mode) }
+    }
+
+    fun setTextSize(size: TextSize) {
+        viewModelScope.launch { repository.setTextSize(size) }
+    }
+
+    fun setReduceMotion(enabled: Boolean) {
+        viewModelScope.launch { repository.setReduceMotion(enabled) }
     }
 
     fun clear() {

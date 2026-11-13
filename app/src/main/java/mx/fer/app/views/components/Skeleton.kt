@@ -36,6 +36,8 @@ import mx.fer.app.ui.theme.Dimens
 fun Modifier.shimmer(shape: Shape = MaterialTheme.shapes.small): Modifier {
     val base = MaterialTheme.colorScheme.surfaceContainerHigh
     val highlight = MaterialTheme.colorScheme.surface
+    // Static placeholder instead of a sweeping highlight
+    if (LocalReduceMotion.current) return clip(shape).background(base)
     val transition = rememberInfiniteTransition(label = "shimmer")
     val x by transition.animateFloat(
         initialValue = -600f,

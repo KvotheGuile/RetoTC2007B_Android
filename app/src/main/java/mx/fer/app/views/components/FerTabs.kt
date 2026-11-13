@@ -44,7 +44,7 @@ fun FerTabs(
         val pillWidth = maxWidth / options.size
         val offset by animateDpAsState(
             targetValue = pillWidth * selectedIndex,
-            animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+            animationSpec = motionSpec(spring(stiffness = Spring.StiffnessMediumLow)),
             label = "tabPill"
         )
         Box(

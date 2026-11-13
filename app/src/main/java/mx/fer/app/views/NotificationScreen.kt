@@ -1,5 +1,6 @@
 package mx.fer.app.views
 
+import mx.fer.app.views.components.itemMotion
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -57,8 +58,7 @@ fun NotificationScreen(
                     item(key = "group_${group.name}") {
                         SectionTitle(
                             text = group.label,
-                            modifier = Modifier
-                                .animateItem()
+                            modifier = itemMotion()
                                 .padding(top = if (index == 0) 4.dp else 14.dp, bottom = 2.dp)
                         )
                     }
@@ -72,7 +72,7 @@ fun NotificationScreen(
                             },
                             notificationItem = notification,
                             isRead = state.isRead(notification),
-                            modifier = Modifier.animateItem()
+                            modifier = itemMotion()
                         )
                     }
                 }

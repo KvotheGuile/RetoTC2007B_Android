@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import mx.fer.app.R
+import mx.fer.app.ui.theme.CappedFontScale
 
 private val NavBarHeight = 76.dp
 private val NavIconSize = 28.dp
@@ -83,7 +84,7 @@ private fun RowScope.NavItem(
     // Pill behind the selected icon grows in from the centre
     val pillWidth by animateDpAsState(
         targetValue = if (isSelected) 64.dp else 28.dp,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        animationSpec = motionSpec(spring(stiffness = Spring.StiffnessMediumLow)),
         label = "navPill"
     )
     val pillAlpha by animateFloatAsState(if (isSelected) 1f else 0f, label = "navPillAlpha")
@@ -126,11 +127,15 @@ private fun RowScope.NavItem(
             )
         }
         Spacer(Modifier.height(4.dp))
-        Text(
-            text = destination.label,
-            style = MaterialTheme.typography.labelSmall,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-            color = color
-        )
+        // Three fixed-width slots: past 1.5x "Preferencias" no longer fits on one line
+        CappedFontScale(max = 1.5f) {
+            Text(
+                text = destination.label,
+                style = MaterialTheme.typography.labelSmall,
+                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                color = color,
+                maxLines = 1
+            )
+        }
     }
 }
