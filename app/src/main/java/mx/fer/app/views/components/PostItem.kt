@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import mx.fer.app.R
 import mx.fer.app.model.Post
 import mx.fer.app.model.PostType
@@ -68,24 +69,43 @@ fun PostCard(
             ) { onClick(post.id) }
     ) {
         Column(Modifier.padding(16.dp)) {
-            // Title and date share the first line; the date stays top-right
-            Row(verticalAlignment = Alignment.Top) {
+            val date = post.publishedAt.toRelativeTime()
+            if (LocalDensity.current.fontScale >= 1.25f) {
+                // Large text: beside the title the date squeezes it until words break,
+                // so it moves to its own line and the title gets the full width
                 Text(
                     text = post.title,
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+                    maxLines = 3,
+                    overflow = TextOverflow.Ellipsis
                 )
-                Spacer(Modifier.width(12.dp))
                 Text(
-                    text = post.publishedAt.toRelativeTime(),
+                    text = date,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    modifier = Modifier.padding(top = 3.dp)   // aligns with the title's first line
+                    maxLines = 1
                 )
+            } else {
+                // Title and date share the first line; the date stays top-right
+                Row(verticalAlignment = Alignment.Top) {
+                    Text(
+                        text = post.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    Text(
+                        text = date,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        modifier = Modifier.padding(top = 3.dp)   // aligns with the title's first line
+                    )
+                }
             }
             Spacer(Modifier.height(6.dp))
             Text(

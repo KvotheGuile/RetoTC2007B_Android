@@ -55,6 +55,8 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
             repository.getNotifications()
                 .onSuccess { list ->
                     _uiState.update { it.copy(isLoading = false, notifications = list) }
+                    // Only after a successful load: a failed one must not wipe the read state
+                    preferences.keepReadNotificationsOnly(list.map { it.id }.toSet())
                 }
                 .onFailure { e ->
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
