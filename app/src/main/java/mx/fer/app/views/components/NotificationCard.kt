@@ -1,84 +1,123 @@
 package mx.fer.app.views.components
 
-import android.text.format.DateUtils
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import mx.fer.app.R
 import mx.fer.app.model.Notification
-import java.util.Date
 import mx.fer.app.util.toRelativeTime
 
 @Composable
 fun NotificationCard(
     onClick: () -> Unit,
-    notificationItem: Notification
+    notificationItem: Notification,
+    modifier: Modifier = Modifier,
+    isRead: Boolean = true
 ) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
-        colors =
-
-            CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            contentColor = MaterialTheme.colorScheme.onSurface
-        )
-    ) {
-        Row(
-            modifier = Modifier.padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            var contentText = notificationItem.message
-
-            if (contentText.length > 150){
-                contentText = contentText.substring(0, 125) + "...";
-            }
-
-            Icon(
-                painter = painterResource(id = R.drawable.baseline_notifications_24), // Your XML file name
-                contentDescription = "Search icon",
-                //tint = Color.Unspecified // Keeps the original colors, OR use a custom color:
-                tint = MaterialTheme.colorScheme.primary
+    val interaction = remember { MutableInteractionSource() }
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .pressScale(interaction, 0.98f)
+            .clip(MaterialTheme.shapes.medium)
+            // Unread = light brand blue, read = plain white card. Gray would blend into the
+            // page background and read as "disabled".
+            .background(
+                if (isRead) MaterialTheme.colorScheme.surface
+                else MaterialTheme.colorScheme.primaryContainer
             )
-
-            Column(
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = notificationItem.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
-                    Text(
-                        text = notificationItem.date.toRelativeTime(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            .clickable(interactionSource = interaction, indication = ripple(), onClick = onClick)
+            .semantics { stateDescription = if (isRead) "Leída" else "No leída" }
+            .padding(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+        verticalAlignment = Alignment.Top
+    ) {
+        // Icon by audience: Becarios, Aspirantes, General, or a bell for notices with no post.
+        // Notices without a post get a solid navy circle so they stand apart from post notifications.
+        val standalone = notificationItem.idPublication == null
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape)
+                .background(
+                    when {
+                        standalone -> MaterialTheme.colorScheme.primary
+                        isRead -> MaterialTheme.colorScheme.primaryContainer
+                        // One step darker than the light-blue card, so the circle stays the same
+                        // family instead of reading as a white hole
+                        else -> MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+                            .compositeOver(MaterialTheme.colorScheme.primaryContainer)
+                    }
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                painter = painterResource(
+                    if (standalone) R.drawable.ic_notifications else notificationItem.type.icon
+                ),
+                contentDescription = if (standalone) "Aviso" else notificationItem.type.label,
+                tint = if (standalone) MaterialTheme.colorScheme.onPrimary
+                else MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+        Column(Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = notificationItem.title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
+                    color = if (isRead) MaterialTheme.colorScheme.onSurface
+                    else MaterialTheme.colorScheme.onPrimaryContainer,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = notificationItem.date.toRelativeTime(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                    else MaterialTheme.colorScheme.primary
+                )
+                if (!isRead) {
+                    // "New" dot, the same navy as the rest of the app
+                    Spacer(Modifier.width(6.dp))
+                    Box(
+                        Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary)
                     )
                 }
-                Text(
-                    text = contentText,
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
+            Spacer(Modifier.height(2.dp))
+            Text(
+                text = notificationItem.message,
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (isRead) MaterialTheme.colorScheme.onSurfaceVariant
+                else MaterialTheme.colorScheme.onPrimaryContainer,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }
