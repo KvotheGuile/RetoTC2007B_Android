@@ -9,8 +9,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -32,16 +30,12 @@ import mx.fer.app.views.components.StateContent
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    viewModel: PostViewModel = viewModel(key = "home"),
+    viewModel: PostViewModel = viewModel(),
     listState: LazyListState = rememberLazyListState(),
     onPostClick: (String) -> Unit
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val posts = state.posts.filter { it.type == PostType.GENERAL }
-
-    LaunchedEffect(Unit) {
-        if (viewModel.uiState.value.posts.isEmpty()) viewModel.loadPosts(null)
-    }
 
     StateContent(
         isLoading = state.isLoading,

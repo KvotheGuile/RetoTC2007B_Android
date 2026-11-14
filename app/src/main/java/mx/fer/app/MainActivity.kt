@@ -122,6 +122,10 @@ fun MainContent(
     val notificationViewModel: NotificationViewModel = viewModel()   // feeds the bell badge and the list
     val notificationState by notificationViewModel.uiState.collectAsStateWithLifecycle()
 
+    // Push: suscribe al usuario a los temas segun sus preferencias (se repite si cambian)
+    val repository = remember { AppRepository() }
+    LaunchedEffect(prefs) { repository.updateTopics(prefs) }
+
     var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
     var showNotifications by rememberSaveable { mutableStateOf(false) }
     var openedPostId by rememberSaveable { mutableStateOf<String?>(null) }
