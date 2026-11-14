@@ -31,6 +31,7 @@ import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import mx.fer.app.model.ThemeMode
+import mx.fer.app.model.AppRepository
 import mx.fer.app.model.UserPreferences
 import mx.fer.app.ui.theme.FERMovilTheme
 import mx.fer.app.ui.theme.isDark

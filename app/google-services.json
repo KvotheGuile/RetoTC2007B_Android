@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1001525145345",
+    "project_id": "fer-movil",
+    "storage_bucket": "fer-movil.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001525145345:android:c35cb77f4cbcdb6b463500",
+        "android_client_info": {
+          "package_name": "mx.fer.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCb2l9RGvNsKfnO-wh8OtPtOgjJ_vp6zmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

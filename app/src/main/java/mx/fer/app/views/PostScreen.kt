@@ -61,7 +61,10 @@ fun PostScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(postId) { viewModel.selectPost(postId) }
+    LaunchedEffect(postId) {
+        viewModel.selectPost(postId)
+        viewModel.registerView(postId)
+    }
 
     // Clear the selection when leaving, so the next post doesn't flash the old one
     DisposableEffect(postId) {

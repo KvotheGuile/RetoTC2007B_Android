@@ -13,6 +13,7 @@ import mx.fer.app.model.Notification
 import mx.fer.app.model.NotificationGroup
 import mx.fer.app.model.UserPreferencesRepository
 import mx.fer.app.model.groupByRecency
+import mx.fer.app.model.PostType
 
 
 data class NotificationsUiState(
@@ -52,7 +53,7 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            repository.getNotifications()
+            repository.getNotifications(setOf(PostType.GENERAL, PostType.SCHOLARSHIP))
                 .onSuccess { list ->
                     _uiState.update { it.copy(isLoading = false, notifications = list) }
                     // Only after a successful load: a failed one must not wipe the read state
