@@ -27,8 +27,6 @@ class PostViewModel(
     private val _uiState = MutableStateFlow(PostsUiState())
     val uiState: StateFlow<PostsUiState> = _uiState.asStateFlow()
 
-    init { loadPosts() }
-
     fun loadPosts(type: PostType? = _uiState.value.selectedType) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null, selectedType = type) }
@@ -70,5 +68,9 @@ class PostViewModel(
 
     fun clearSelectedPost() {
         _uiState.update { it.copy(selectedPost = null) }
+    }
+
+    fun registerView(id: String) {
+        viewModelScope.launch { repository.registerView(id) }   // si falla, no pasa nada
     }
 }

@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.fer.app.model.AppRepository
 import mx.fer.app.model.UserPreferences
 import mx.fer.app.viewmodels.PostViewModel
 import mx.fer.app.viewmodels.UserViewModel
@@ -71,6 +72,8 @@ fun MainContent(
     userViewModel: UserViewModel
 ){
     val postViewModel: PostViewModel = viewModel()   // one shared instance
+    val repository = remember { AppRepository() }
+    LaunchedEffect(prefs) { repository.updateTopics(prefs) }
 
     var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
     var showNotifications by rememberSaveable { mutableStateOf(false) }
@@ -135,6 +138,7 @@ fun MainContent(
             else -> when (destination) {
                 Destination.HOME -> HomeScreen(
                     modifier = contentModifier,
+                    viewModel = postViewModel,
                     onPostClick = { openedPostId = it }
                 )
                 Destination.ANNOUNCEMENTS -> AnnouncementsScreen(

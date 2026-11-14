@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import mx.fer.app.model.AppRepository
 import mx.fer.app.model.Notification
+import mx.fer.app.model.PostType
 
 
 data class NotificationsUiState(
@@ -30,7 +31,7 @@ class NotificationViewModel(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, error = null) }
 
-            repository.getNotifications()
+            repository.getNotifications(setOf(PostType.GENERAL, PostType.SCHOLARSHIP))
                 .onSuccess { list ->
                     _uiState.update { it.copy(isLoading = false, notifications = list) }
                 }
