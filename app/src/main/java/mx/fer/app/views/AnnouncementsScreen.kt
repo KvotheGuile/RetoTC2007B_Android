@@ -59,7 +59,7 @@ fun rememberAnnouncementsState(initialPage: Int = 0): AnnouncementsState {
 @Composable
 fun AnnouncementsScreen(
     modifier: Modifier = Modifier,
-    viewModel: PostViewModel = viewModel(key = "announcements"),
+    viewModel: PostViewModel = viewModel(),
     screenState: AnnouncementsState = rememberAnnouncementsState(),
     onPostClick: (String) -> Unit,
 ) {
