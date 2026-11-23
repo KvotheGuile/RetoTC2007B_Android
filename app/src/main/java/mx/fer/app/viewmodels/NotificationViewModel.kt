@@ -17,6 +17,7 @@ import mx.fer.app.model.groupByRecency
 
 data class NotificationsUiState(
     val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,     // pull-to-refresh: keeps the list visible
     val notifications: List<Notification> = emptyList(),
     val readIds: Set<String> = emptySet(),
     val error: String? = null
@@ -62,6 +63,28 @@ class NotificationViewModel(application: Application) : AndroidViewModel(applica
                     _uiState.update { it.copy(isLoading = false, error = e.message) }
                 }
         }
+    }
+
+    // Pull to refresh, also called when coming back to the app so panel edits show up
+    fun refresh() {
+        if (_uiState.value.isLoading || _uiState.value.isRefreshing) return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isRefreshing = true) }
+            repository.getNotifications()
+                .onSuccess { list ->
+                    _uiState.update { it.copy(isRefreshing = false, notifications = list, error = null) }
+                    preferences.keepReadNotificationsOnly(list.map { it.id }.toSet())
+                }
+                .onFailure {
+                    // Keep the current list; the user can pull again
+                    _uiState.update { it.copy(isRefreshing = false) }
+                }
+        }
+    }
+
+    // Used when the notice is opened from a push
+    fun markAsRead(notificationId: String) {
+        viewModelScope.launch { preferences.markNotificationsRead(listOf(notificationId)) }
     }
 
     fun markAsRead(notification: Notification) {
