@@ -5,8 +5,9 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-fun Date.toRelativeTime(): String {
-    val diff = System.currentTimeMillis() - time
+// now is a parameter only so tests can pin the clock
+fun Date.toRelativeTime(now: Long = System.currentTimeMillis()): String {
+    val diff = now - time
     val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
     val hours = TimeUnit.MILLISECONDS.toHours(diff)
     val days = TimeUnit.MILLISECONDS.toDays(diff)
@@ -21,8 +22,8 @@ fun Date.toRelativeTime(): String {
 }
 
 /** "Hace 3 días · 8 nov 2026". Past 30 days the relative part is already a date, so it shows once. */
-fun Date.toFullDate(): String {
+fun Date.toFullDate(now: Long = System.currentTimeMillis()): String {
     val date = SimpleDateFormat("d MMM yyyy", Locale("es", "MX")).format(this)
-    val relative = toRelativeTime()
+    val relative = toRelativeTime(now)
     return if (relative == date) date else "$relative · $date"
 }
