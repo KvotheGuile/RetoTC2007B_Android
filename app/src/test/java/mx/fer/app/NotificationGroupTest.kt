@@ -47,6 +47,11 @@ class NotificationGroupTest {
     }
 
     @Test
+    fun emptyListGivesNoGroups() {
+        assertEquals(emptyList<Any>(), emptyList<Notification>().groupByRecency(now))
+    }
+
+    @Test
     fun leavesOutEmptyGroups() {
         val groups = listOf(notif("a", at(20, 9))).groupByRecency(now)
         assertEquals(listOf(NotificationGroup.OLDER), groups.map { it.first })

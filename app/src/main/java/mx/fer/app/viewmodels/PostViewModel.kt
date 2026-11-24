@@ -10,6 +10,7 @@ import kotlinx.coroutines.launch
 import mx.fer.app.model.AppRepository
 import mx.fer.app.model.Post
 import mx.fer.app.model.PostType
+import mx.fer.app.model.PostsSource
 
 
 data class PostsUiState(
@@ -22,7 +23,7 @@ data class PostsUiState(
 )
 
 class PostViewModel(
-    private val repository: AppRepository = AppRepository()
+    private val repository: PostsSource = AppRepository()
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PostsUiState())

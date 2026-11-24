@@ -16,7 +16,7 @@ import java.util.Locale
 
 class AppRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
-) {
+) : PostsSource {
 
     // Max docs per query, keeps reads (and cost) low
     private val pageSize = 20L
@@ -25,7 +25,7 @@ class AppRepository(
 
     // Always filter by status == "published" or the rules reject the query
     // Needs indexes status+publishedAt and status+type+publishedAt (Logcat gives the link)
-    suspend fun getPosts(type: PostType? = null): Result<List<Post>> =
+    override suspend fun getPosts(type: PostType?): Result<List<Post>> =
         runCatching {
             var query: Query = db.collection("publications")
                 .whereEqualTo("status", "published")
@@ -41,11 +41,11 @@ class AppRepository(
             snapshot.documents
                 .mapNotNull { it.toPost() }
                 // In case the panel hasn't marked them as expired yet
-                .filter { post -> post.expiresAt == null || post.expiresAt.after(now) }
+                .filter { isActive(it.expiresAt, now) }
                 .map { it.post }
         }
 
-    suspend fun getPost(id: String): Result<Post> =
+    override suspend fun getPost(id: String): Result<Post> =
         runCatching {
             val doc = db.collection("publications").document(id).get().await()
             if (doc.getString("status") != "published") {
@@ -55,7 +55,7 @@ class AppRepository(
         }
 
     // Call once when a post is opened: views +1 and viewsByMonth +1 in the same write
-    suspend fun registerView(postId: String): Result<Unit> =
+    override suspend fun registerView(postId: String): Result<Unit> =
         runCatching {
             val month = SimpleDateFormat("yyyy-MM", Locale.US).format(Date()) // e.g. 2026-11
             db.collection("publications").document(postId).update(
@@ -111,14 +111,8 @@ class AppRepository(
     suspend fun updateTopics(prefs: UserPreferences): Result<Unit> =
         runCatching {
             val messaging = FirebaseMessaging.getInstance()
-            val wanted = buildSet {
-                if (prefs.pushNotificationsEnabled) {
-                    if (prefs.interestedGeneral) add("general")
-                    if (prefs.interestedScholarship) add("scholars")
-                    if (prefs.interestedApplicants) add("applicants")
-                }
-            }
-            for (topic in listOf("general", "scholars", "applicants")) {
+            val wanted = topicsFor(prefs)
+            for (topic in ALL_TOPICS) {
                 if (topic in wanted) messaging.subscribeToTopic(topic).await()
                 else messaging.unsubscribeFromTopic(topic).await()
             }
@@ -148,17 +142,5 @@ class AppRepository(
             ),
             expiresAt = getTimestamp("expiresAt")?.toDate()
         )
-    }
-
-    private fun PostType.toFirestore(): String = when (this) {
-        PostType.GENERAL -> "general"
-        PostType.SCHOLARSHIP -> "scholars"
-        PostType.APPLICANTS -> "applicants"
-    }
-
-    private fun String?.toPostType(): PostType = when (this) {
-        "scholars" -> PostType.SCHOLARSHIP
-        "applicants" -> PostType.APPLICANTS
-        else -> PostType.GENERAL
     }
 }
