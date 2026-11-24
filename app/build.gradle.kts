@@ -34,8 +34,9 @@ android {
             optimization {
                 enable = false
             }
+            
+            signingConfig = signingConfigs.getByName("release") 
         }
-        signingConfig = signingConfigs.getByName("release") 
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
