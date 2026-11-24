@@ -1,7 +1,9 @@
 package mx.fer.app.views.components
 
 import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,8 +28,8 @@ import mx.fer.app.R
 import mx.fer.app.model.Attachment
 
 /**
- * A PDF linked from a post. Tapping it hands the URL to the system, which opens it in the
- * browser or the user's PDF viewer; the app doesn't download or render the file itself.
+ * A PDF linked from a post. Tapping it opens the URL in the browser; the app doesn't
+ * download or render the file itself.
  */
 @Composable
 fun AttachmentCard(
@@ -50,11 +52,7 @@ fun AttachmentCard(
                 role = Role.Button,
                 onClickLabel = "Abrir PDF"
             ) {
-                try {
-                    context.startActivity(Intent(Intent.ACTION_VIEW, attachment.url.toUri()))
-                } catch (e: ActivityNotFoundException) {
-                    Toast.makeText(context, "No hay una app para abrir este archivo", Toast.LENGTH_SHORT).show()
-                }
+                openInBrowser(context, attachment.url)
             }
             .padding(14.dp),
         horizontalArrangement = Arrangement.spacedBy(14.dp),
@@ -94,5 +92,27 @@ fun AttachmentCard(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.size(20.dp)
         )
+    }
+}
+
+// Forces the browser, otherwise Drive links open the Drive app and it closes without a Google account
+private fun openInBrowser(context: Context, url: String) {
+    val intent = Intent(Intent.ACTION_VIEW, url.toUri())
+
+    // Default browser = whatever opens a plain https link
+    val browser = context.packageManager.resolveActivity(
+        Intent(Intent.ACTION_VIEW, "https://".toUri()),
+        PackageManager.MATCH_DEFAULT_ONLY
+    )
+    val browserPackage = browser?.activityInfo?.packageName
+    // "android" = no default browser, let the user pick
+    if (browserPackage != null && browserPackage != "android") {
+        intent.setPackage(browserPackage)
+    }
+
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "No hay una app para abrir este archivo", Toast.LENGTH_SHORT).show()
     }
 }

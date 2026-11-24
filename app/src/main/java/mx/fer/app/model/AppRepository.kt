@@ -1,14 +1,13 @@
 package mx.fer.app.model
 
-// AppRepository con Firestore (reemplaza al archivo actual de model/AppRepository.kt).
-// Mantiene las mismas funciones que ya usan los ViewModels (getPosts, getPost,
-// getNotifications) y agrega registerView y updateTopics.
+// Firestore version of the repo, same functions the ViewModels were already using
 
 import com.google.firebase.Timestamp
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
+import com.google.firebase.firestore.SetOptions
 import com.google.firebase.messaging.FirebaseMessaging
 import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
@@ -19,16 +18,13 @@ class AppRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
 
-    // Maximo de documentos por lectura. Es lo que mantiene el costo casi en cero.
+    // Max docs per query, keeps reads (and cost) low
     private val pageSize = 20L
 
-    // ---------- Publicaciones ----------
+    //Posts
 
-    // IMPORTANTE: la consulta SIEMPRE lleva status == "published". Sin eso las reglas
-    // de seguridad de Firestore rechazan toda la lectura.
-    // Indices compuestos que pedira Firestore (con enlace en Logcat, un clic):
-    //   status + publishedAt        (todas)
-    //   status + type + publishedAt (cuando se filtra por tipo)
+    // Always filter by status == "published" or the rules reject the query
+    // Needs indexes status+publishedAt and status+type+publishedAt (Logcat gives the link)
     suspend fun getPosts(type: PostType? = null): Result<List<Post>> =
         runCatching {
             var query: Query = db.collection("publications")
@@ -44,7 +40,7 @@ class AppRepository(
             val now = Date()
             snapshot.documents
                 .mapNotNull { it.toPost() }
-                // respaldo: no mostrar vencidas aunque el panel aun no las marque
+                // In case the panel hasn't marked them as expired yet
                 .filter { post -> post.expiresAt == null || post.expiresAt.after(now) }
                 .map { it.post }
         }
@@ -58,24 +54,32 @@ class AppRepository(
             doc.toPost()?.post ?: throw NoSuchElementException("Post $id not found")
         }
 
-    // Llamar UNA vez cada vez que el usuario abre el detalle de una publicacion.
-    // Suma 1 a views y 1 al mes actual en viewsByMonth, en una sola escritura.
-    // La regla solo acepta views + 1 y solo en publicaciones publicadas.
+    // Call once when a post is opened: views +1 and viewsByMonth +1 in the same write
     suspend fun registerView(postId: String): Result<Unit> =
         runCatching {
-            val month = SimpleDateFormat("yyyy-MM", Locale.US).format(Date()) // ej. 2026-11
+            val month = SimpleDateFormat("yyyy-MM", Locale.US).format(Date()) // e.g. 2026-11
             db.collection("publications").document(postId).update(
                 "views", FieldValue.increment(1),
-                "viewsByMonth.$month", FieldValue.increment(1) // notacion con punto
+                "viewsByMonth.$month", FieldValue.increment(1) // dot notation so it doesn't overwrite other months
             ).await()
             Unit
         }
 
-    // ---------- Notificaciones ----------
+    //Usage
 
-    // types = los tipos que le interesan al usuario (sus preferencias).
-    // Por defecto trae los tres. "target" en Firestore: general, scholars o applicants.
-    // Indice compuesto: target + date (descendente).
+    // Call once per app start, the panel uses it to estimate the Firebase usage
+    suspend fun registerAppOpen(): Result<Unit> =
+        runCatching {
+            val day = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()) // e.g. 2026-11-22
+            db.collection("usage").document(day)
+                .set(mapOf("appOpens" to FieldValue.increment(1)), SetOptions.merge())
+                .await()
+            Unit
+        }
+
+    //Notifications
+
+    // types = user's interests (all three by default). Index: target + date desc
     suspend fun getNotifications(
         types: Set<PostType> = PostType.entries.toSet()
     ): Result<List<Notification>> =
@@ -101,10 +105,9 @@ class AppRepository(
             }
         }
 
-    // ---------- Push (FCM) ----------
+    //Push
 
-    // Suscribe al usuario a los temas segun sus preferencias y lo quita de los demas.
-    // Llamar al iniciar la app y cada vez que cambien las preferencias.
+    // Subscribes to the user's topics and unsubscribes from the rest
     suspend fun updateTopics(prefs: UserPreferences): Result<Unit> =
         runCatching {
             val messaging = FirebaseMessaging.getInstance()
@@ -121,7 +124,7 @@ class AppRepository(
             }
         }
 
-    // ---------- Conversion Firestore -> modelos de la app ----------
+    //Firestore -> models
 
     private class ParsedPost(val post: Post, val expiresAt: Date?)
 
