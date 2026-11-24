@@ -90,6 +90,6 @@ class PostViewModel(
     }
 
     fun registerView(id: String) {
-        viewModelScope.launch { repository.registerView(id) }   // si falla, no pasa nada
+        viewModelScope.launch { repository.registerView(id) }   // if it fails, nothing happens
     }
 }

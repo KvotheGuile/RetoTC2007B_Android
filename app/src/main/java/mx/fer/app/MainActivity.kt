@@ -1,6 +1,7 @@
 package mx.fer.app
 
 import android.graphics.Color as AndroidColor
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -28,8 +29,13 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.lifecycle.viewmodel.compose.viewModel
+import mx.fer.app.messaging.FerMessagingService
 import mx.fer.app.model.ThemeMode
 import mx.fer.app.model.AppRepository
 import mx.fer.app.model.UserPreferences
@@ -59,12 +65,22 @@ class MainActivity : ComponentActivity() {
 
     private val userViewModel: UserViewModel by viewModels()
 
+    // Set when the user taps a push, MainContent opens it and clears it
+    private var pushTarget by mutableStateOf<PushTarget?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splash = installSplashScreen()
         super.onCreate(savedInstanceState)
+        readPushTarget(intent)
+        FerMessagingService.createChannel(this)
         // Keep the branded splash until we know whether to show onboarding or the feed
         splash.setKeepOnScreenCondition { userViewModel.uiState.value.isLoading }
         enableEdgeToEdge()
+
+        // Counts app opens for the panel (not on rotation)
+        if (savedInstanceState == null) {
+            lifecycleScope.launch { AppRepository().registerAppOpen() }
+        }
 
         setContent {
             val userState by userViewModel.uiState.collectAsStateWithLifecycle()
@@ -104,31 +120,60 @@ class MainActivity : ComponentActivity() {
                             }
                         )
 
-                        else -> MainContent(prefs, userViewModel)
+                        else -> MainContent(prefs, userViewModel, pushTarget) { pushTarget = null }
                     }
                 }
             }
         }
     }
+
+    // App already open in the background (singleTop): the push arrives here
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        readPushTarget(intent)
+    }
+
+    // A tapped push opens the app with its data as extras (sent by the push worker)
+    private fun readPushTarget(intent: Intent?) {
+        val notificationId = intent?.getStringExtra("notificationId") ?: return
+        pushTarget = PushTarget(notificationId, intent.getStringExtra("publicationId"))
+        intent.removeExtra("notificationId") // so rotating doesn't open it again
+    }
 }
+
+// What a tapped push wants to open: its post, or the notifications list if it has none
+data class PushTarget(val notificationId: String, val postId: String?)
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainContent(
     prefs: UserPreferences,
-    userViewModel: UserViewModel
+    userViewModel: UserViewModel,
+    pushTarget: PushTarget? = null,
+    onPushHandled: () -> Unit = {}
 ) {
     val postViewModel: PostViewModel = viewModel()   // one shared instance for the detail screen
     val notificationViewModel: NotificationViewModel = viewModel()   // feeds the bell badge and the list
     val notificationState by notificationViewModel.uiState.collectAsStateWithLifecycle()
+    // Reload notifications when coming back to the app
+    LifecycleEventEffect(Lifecycle.Event.ON_START) { notificationViewModel.refresh() }
 
-    // Push: suscribe al usuario a los temas segun sus preferencias (se repite si cambian)
+    // Push: subscribe to the user's topics (runs again if prefs change)
     val repository = remember { AppRepository() }
     LaunchedEffect(prefs) { repository.updateTopics(prefs) }
 
     var destination by rememberSaveable { mutableStateOf(Destination.HOME) }
     var showNotifications by rememberSaveable { mutableStateOf(false) }
     var openedPostId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    // Open what the tapped push points to
+    LaunchedEffect(pushTarget) {
+        val target = pushTarget ?: return@LaunchedEffect
+        notificationViewModel.markAsRead(target.notificationId)
+        if (target.postId != null) openedPostId = target.postId
+        else showNotifications = true
+        onPushHandled()
+    }
 
     // Hoisted so scroll position and selected tab survive opening a post and coming back
     val homeListState = rememberLazyListState()

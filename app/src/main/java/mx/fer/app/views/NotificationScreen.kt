@@ -4,6 +4,8 @@ import mx.fer.app.views.components.itemMotion
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +27,7 @@ import mx.fer.app.views.components.NotificationListSkeleton
 import mx.fer.app.views.components.SectionTitle
 import mx.fer.app.views.components.StateContent
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationScreen(
     onOpenPost: (String) -> Unit,
@@ -42,38 +45,44 @@ fun NotificationScreen(
         modifier = modifier,
         loading = { NotificationListSkeleton() }
     ) {
-        if (state.notifications.isEmpty()) {
-            EmptyState(
-                icon = R.drawable.ic_notifications,
-                title = "Sin notificaciones",
-                message = "Aquí verás los avisos que envíe la Fundación."
-            )
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = Dimens.ScreenPadding, vertical = 8.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                state.groups.forEachIndexed { index, (group, notifications) ->
-                    item(key = "group_${group.name}") {
-                        SectionTitle(
-                            text = group.label,
-                            modifier = itemMotion()
-                                .padding(top = if (index == 0) 4.dp else 14.dp, bottom = 2.dp)
-                        )
-                    }
-                    items(items = notifications, key = { it.id }) { notification ->
-                        NotificationCard(
-                            onClick = {
-                                viewModel.markAsRead(notification)
-                                val postId = notification.idPublication
-                                if (postId != null) onOpenPost(postId)
-                                else openNoticeId = notification.id
-                            },
-                            notificationItem = notification,
-                            isRead = state.isRead(notification),
-                            modifier = itemMotion()
-                        )
+        PullToRefreshBox(
+            isRefreshing = state.isRefreshing,
+            onRefresh = viewModel::refresh,
+            modifier = Modifier.fillMaxSize()
+        ) {
+            if (state.notifications.isEmpty()) {
+                EmptyState(
+                    icon = R.drawable.ic_notifications,
+                    title = "Sin notificaciones",
+                    message = "Aquí verás los avisos que envíe la Fundación."
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(horizontal = Dimens.ScreenPadding, vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    state.groups.forEachIndexed { index, (group, notifications) ->
+                        item(key = "group_${group.name}") {
+                            SectionTitle(
+                                text = group.label,
+                                modifier = itemMotion()
+                                    .padding(top = if (index == 0) 4.dp else 14.dp, bottom = 2.dp)
+                            )
+                        }
+                        items(items = notifications, key = { it.id }) { notification ->
+                            NotificationCard(
+                                onClick = {
+                                    viewModel.markAsRead(notification)
+                                    val postId = notification.idPublication
+                                    if (postId != null) onOpenPost(postId)
+                                    else openNoticeId = notification.id
+                                },
+                                notificationItem = notification,
+                                isRead = state.isRead(notification),
+                                modifier = itemMotion()
+                            )
+                        }
                     }
                 }
             }
